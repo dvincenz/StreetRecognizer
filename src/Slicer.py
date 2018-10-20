@@ -1,37 +1,38 @@
 import json
 import os
+
 from PIL import Image
 
-file = "./DummyMap.png"
-map = Image.open(file)
+FILE = "./DummyMap.png"
+MAP = Image.open(FILE)
 
-boxSize = 100
-mapOffset = (100, 100)
+BOX_SIZE = 100
+MAP_OFFSET = (100, 100)
 
-xsize, ysize = map.size
+X_SIZE, Y_SIZE = MAP.size
 
-parts = []
-for x in range(0, xsize, boxSize):
-    for y in range(0, ysize, boxSize):
+PARTS = []
+for x in range(0, X_SIZE, BOX_SIZE):
+    for y in range(0, Y_SIZE, BOX_SIZE):
         part = {}
-        part['part'] = map.crop((x, y, x + boxSize, y + boxSize))
-        part['a'] = (x,y)
-        part['b'] = (x + boxSize, y + boxSize)
-        parts.append(part)
+        part['part'] = MAP.crop((x, y, x + BOX_SIZE, y + BOX_SIZE))
+        part['a'] = (x, y)
+        part['b'] = (x + BOX_SIZE, y + BOX_SIZE)
+        PARTS.append(part)
 
 if not os.path.exists("./out"):
     os.makedirs("./out")
 
-nodes = []
+NODES = []
 with open('streets.json') as json_data:
-    streets = json.load(json_data)
-    for street in streets:
-        nodes.append((street[0], street[1]))
+    STREETS = json.load(json_data)
+    for street in STREETS:
+        NODES.append((street[0], street[1]))
 
-streets = []
-for idx, node in enumerate(nodes):
+STREETS = []
+for idx, node in enumerate(NODES):
     if idx > 0:
-        streets.append((nodes[idx-1], node))
+        STREETS.append((NODES[idx-1], node))
 
 def toParametricLine(a, b):
     return (a, (b[0] - a[0], b[1] - a[1]))
@@ -67,32 +68,32 @@ def getBoundingLineSegments(a, b):
 
 def transformPointToMapCoordinates(p):
     return (
-        p[0] - mapOffset[0],
-        ysize - (p[1] - mapOffset[1])
+        p[0] - MAP_OFFSET[0],
+        Y_SIZE - (p[1] - MAP_OFFSET[1])
     )
 
-def transformStreetToMapCoordinates(street):
+def transformStreetToMapCoordinates(streetToTransform):
     return (
-        transformPointToMapCoordinates(street[0]),
-        transformPointToMapCoordinates(street[1])
+        transformPointToMapCoordinates(streetToTransform[0]),
+        transformPointToMapCoordinates(streetToTransform[1])
     )
 
-for i, part in enumerate(parts):
+for i, part in enumerate(PARTS):
     intersects = False
-    for street in streets:
+    for street in STREETS:
         transformedStreet = transformStreetToMapCoordinates(street)
         if lineSegmentContained(transformedStreet, (part['a'], part['b'])):
             intersects = True
             break
-        
+
         for segment in getBoundingLineSegments(part['a'], part['b']):
             if lineSegmentsIntersect(transformedStreet, segment):
                 intersects = True
                 break
-        
+
         if intersects:
             break
-    
+
     if intersects:
         part['part'].save("./out/part" + str(i) + ".png", "PNG")
     else:
