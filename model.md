@@ -8,16 +8,16 @@ We obviously require an Orthophoto as input, but we would like to give the model
 
 Orthophoto will be sliced into equal, constant sizes / resolutions. Slices will be fed one-at-a-time to the model, as a 3 x w x h vector, represented as a flat vector.
 
-## Street Vector Data
+### Street Vector Data
 
 Street Vector Data is the Open Street Maps data, describing the street network. A street consists of a list of nodes/waypoints, describing the path the street poly-line takes.
 
-### Problems
+#### Problems
 
 * A single Orthophoto slice can contain an arbitrary number of streets
 * A single street can contain an arbitrary number of nodes
 
-### Possible representations
+#### Possible representations
 
 * Manually render all street vector data for a given slice into an image (e.g. black-white or different colors for different street-types). Pass the rendered image as a flat vector to the model.
 * Same as before, but render street vector data on a larger scale (e.g. entire Orthophoto) and slice it along with the Orthophoto.
