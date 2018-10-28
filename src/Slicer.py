@@ -3,30 +3,33 @@ import os
 
 from PIL import Image
 
-X1 = 2642913.3763101
-X2 = 2722086.6236899
-Y1 = 1231766.0165963
-Y2 = 1273233.9834037
-BBOX = "{},{},{},{}".format(X1, Y1, X2, Y2)
-IMAGE_WIDTH = 512
-IMAGE_HEIGHT = 512
-WMS_URL = "http://wms.zh.ch/OrthoZHWMS?LAYERS=orthophotos&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fjpeg&CRS=EPSG%3A2056&SRS=EPSG%3A2056&BBOX={}&WIDTH={}&HEIGHT={}".format(
-    BBOX, IMAGE_WIDTH, IMAGE_HEIGHT)
-print(WMS_URL)
+# X1 = 2642913.3763101
+# X2 = 2722086.6236899
+# Y1 = 1231766.0165963
+# Y2 = 1273233.9834037
+# BBOX = "{},{},{},{}".format(X1, Y1, X2, Y2)
+# IMAGE_WIDTH = 512
+# IMAGE_HEIGHT = 512
+# WMS_URL = "http://wms.zh.ch/OrthoZHWMS?LAYERS=orthophotos&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fjpeg&CRS=EPSG%3A2056&SRS=EPSG%3A2056&BBOX={}&WIDTH={}&HEIGHT={}".format(
+#     BBOX, IMAGE_WIDTH, IMAGE_HEIGHT)
+# print(WMS_URL)
 
-FILE = "OrthoZHWMS.jpg"
-MAP = Image.open("./in/" + FILE)
+IMAGE_NAME = '1032-432.tif'
+FILE = './in/Ortho/' + IMAGE_NAME
 
-BOX_SIZE = 100
-MAP_OFFSET = (100, 100)
+Image.MAX_IMAGE_PIXELS = 328125000
+ORTHOPHOTO = Image.open(FILE)
 
-X_SIZE, Y_SIZE = MAP.size
+BOX_SIZE = 625
+MAP_OFFSET = (0, 0)
+
+X_SIZE, Y_SIZE = ORTHOPHOTO.size
 
 PARTS = []
 for x in range(0, X_SIZE, BOX_SIZE):
     for y in range(0, Y_SIZE, BOX_SIZE):
         part = {}
-        part['part'] = MAP.crop((x, y, x + BOX_SIZE, y + BOX_SIZE))
+        part['part'] = ORTHOPHOTO.crop((x, y, x + BOX_SIZE, y + BOX_SIZE))
         part['a'] = (x, y)
         part['b'] = (x + BOX_SIZE, y + BOX_SIZE)
         PARTS.append(part)
@@ -98,29 +101,11 @@ def transformStreetToMapCoordinates(streetToTransform):
     )
 
 
-OUT_DIRECTORY = "./out/" + FILE
+OUT_DIRECTORY = "./out/" + IMAGE_NAME
 if not os.path.exists(OUT_DIRECTORY):
     os.mkdir(OUT_DIRECTORY)
 
 for i, part in enumerate(PARTS):
-    intersects = False
-    for street in STREETS:
-        transformedStreet = transformStreetToMapCoordinates(street)
-        if lineSegmentContained(transformedStreet, (part['a'], part['b'])):
-            intersects = True
-            break
-
-        for segment in getBoundingLineSegments(part['a'], part['b']):
-            if lineSegmentsIntersect(transformedStreet, segment):
-                intersects = True
-                break
-
-        if intersects:
-            break
-
-    if True:
-        partName = "{}/{:0>3d},{:0>3d}.png".format(
-            OUT_DIRECTORY, part['a'][1], part['a'][0])
-        part['part'].save(partName, "PNG")
-    else:
-        print("skipping part %s, it does not intersect any streets" % i)
+    partName = "{}/{:0>3d},{:0>3d}.png".format(
+        OUT_DIRECTORY, part['a'][1], part['a'][0])
+    part['part'].save(partName, "PNG")
