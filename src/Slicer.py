@@ -20,7 +20,7 @@ FILE = './in/Ortho/' + IMAGE_NAME
 Image.MAX_IMAGE_PIXELS = 328125000
 ORTHOPHOTO = Image.open(FILE)
 
-BOX_SIZE = 625
+BOX_SIZE = 1024 # produces 330 tiles for orthophotos of size 21'875 x 15'000 px
 MAP_OFFSET = (0, 0)
 
 X_SIZE, Y_SIZE = ORTHOPHOTO.size
