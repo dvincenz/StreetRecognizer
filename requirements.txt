@@ -1,0 +1,2 @@
+pygdal==1.11.3.3
+requests
