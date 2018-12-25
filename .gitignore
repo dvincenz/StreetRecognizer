@@ -1,3 +1,9 @@
 .vscode/
 src/out/
 src/in/Ortho/
+__pycache__
+*.dbf
+*.shp
+*.shx
+*.vrt
+*.prj
