@@ -1,6 +1,6 @@
 import argparse
-from PIL import Image
 import os
+from PIL import Image
 
 from Slicer import Slicer
 from SlicerConfig import SlicerConfig
@@ -19,13 +19,13 @@ def main():
     Image.MAX_IMAGE_PIXELS = 17500 * 12000
 
     # produces 294 tiles for orthophotos of size 17'500 x 12'000 px, with overlap of 20%
-    config = SlicerConfig(tileSize=args.size, baseOverlapFactor=args.overlap)
-    slicer = Slicer(imagePath=os.path.dirname(args.image), imageName=os.path.basename(args.image))
+    config = SlicerConfig(tile_size=args.size, base_overlap_factor=args.overlap)
+    slicer = Slicer(image_path=os.path.dirname(args.image), image_name=os.path.basename(args.image))
 
-    config.printDebugInformation(slicer.image.size)
+    config.print_debug_information(slicer.image.size)
 
     tiles = slicer.slice(config)
-    slicer.saveTiles(tiles, config, args.target)
+    slicer.save_tiles(tiles, config, args.target)
 
     # This stuff will be re-used for JSON and GeoData metadata
     # MAP_OFFSET = (0, 0)
