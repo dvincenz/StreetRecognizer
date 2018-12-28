@@ -8,6 +8,7 @@ COPY requirements.txt ./
 RUN apt-get update
 RUN apt-get -y install libgdal-dev
 RUN apt install gdal-bin
+RUN apt install python3-gdal
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN echo "alias py=python" > ~/.bash_aliases
