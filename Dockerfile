@@ -16,9 +16,3 @@ RUN apt-get update \
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-
-#start docker
-#docker build -t challp .
-#docker run -v /mnt/hgfs/Repos/HSR/challangeProject/StreetRecognizer:/usr/src/app -it challp bash
-#docker run -v "$(Get-Location):/usr/src/app" -it challp bash
