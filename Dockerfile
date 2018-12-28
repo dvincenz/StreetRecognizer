@@ -4,14 +4,18 @@ FROM tensorflow/tensorflow:latest-py3
 
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
-RUN apt-get update
-RUN apt-get -y install libgdal-dev
-RUN apt install gdal-bin
-RUN apt install python3-gdal
-RUN pip install --no-cache-dir -r requirements.txt
-
 RUN echo "alias py=python" > ~/.bash_aliases
+
+RUN apt-get update \
+ && apt-get --assume-yes install \
+  libgdal-dev \
+  gdal-bin \
+  python3-gdal \
+ && rm -rf /var/lib/apt/lists
+
+COPY requirements.txt ./
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 
 #start docker
