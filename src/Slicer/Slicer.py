@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import shutil
@@ -47,21 +48,65 @@ class Slicer:
                                                            maxTiles, len(tiles) / maxTiles))
         return tiles
 
-    def saveTiles(self, tiles: [Tile], outPath: str, removeExisting=True):
+    def saveTiles(self, tiles: [Tile], config: SlicerConfig, outPath: str, removeExisting=True):
         print('saving...')
 
-        outDir = outPath + self.imageName
+        outDir = outPath + os.path.splitext(self.imageName)[0]
 
         if removeExisting and os.path.exists(outDir):
             shutil.rmtree(outDir, ignore_errors=True)
 
         os.makedirs(outDir, exist_ok=True)
 
+        sizeX, sizeY = self.image.size
+
+        data = {}
+        data['imageName'] = self.imageName
+        data['imageSize'] = {
+            'width': sizeX,
+            'height': sizeY
+        }
+        data['wgs84'] = {
+            'top': 0,
+            'left': 0,
+            'bottom': 0,
+            'right': 0
+        }
+        data['tileConfig'] = {
+            'tileSize': config.tileSize,
+            'overlapPixelsX': config.x.getOverlapOffset(sizeX),
+            'overlapPixelsY': config.y.getOverlapOffset(sizeY),
+            'overlapFactorX': config.x.getOverlapOffset(sizeX) / config.tileSize,
+            'overlapFactorY': config.y.getOverlapOffset(sizeY) / config.tileSize,
+            'numTilesX': config.x.getNumTiles(sizeX),
+            'numTilesY': config.y.getNumTiles(sizeY)
+        }
+        data['tileDirectory'] = os.path.splitext(self.imageName)[0]
+        data['tiles'] = []
+
         for i, tile in enumerate(tiles):
-            tileName = "{}/{:0>3d},{:0>3d}.png".format(
-                outDir, tile.top, tile.left)
-            tile.image.save(tileName, "PNG")
+            tileName = "{:0>3d},{:0>3d}.png".format(tile.top, tile.left)
+            tile.image.save(outDir + '/' + tileName, "PNG")
+
+            data['tiles'].append({
+                'tileName': tileName,
+                'pixels': {
+                    'top': tile.top,
+                    'left': tile.left,
+                    'bottom': tile.bottom,
+                    'right': tile.right
+                },
+                'wgs84': {
+                    'top': 0,
+                    'left': 0,
+                    'bottom': 0,
+                    'right': 0
+                }
+            })
 
             if (i+1) % 50 == 0:
                 print('  {0:d}/{1:d} ({2:.1%})'.format((i+1),
                                                        len(tiles), (i+1) / len(tiles)))
+
+        with open(outDir + '.json', 'w') as outfile:
+            json.dump(data, outfile, sort_keys=True, indent=4)
