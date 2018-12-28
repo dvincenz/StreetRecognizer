@@ -19,7 +19,7 @@ class Tile:
 class Slicer:
     def __init__(self, imagePath: str, imageName: str):
         self.imageName = imageName
-        self.image = Image.open(imagePath + imageName)
+        self.image = Image.open(os.path.join(imagePath, imageName))
 
     def slice(self, config: SlicerConfig):
         print('slicing...')
@@ -49,9 +49,9 @@ class Slicer:
         return tiles
 
     def saveTiles(self, tiles: [Tile], config: SlicerConfig, outPath: str, removeExisting=True):
-        print('saving...')
+        print('saving... (to ' + os.path.abspath(outPath) + ')')
 
-        outDir = outPath + os.path.splitext(self.imageName)[0]
+        outDir = os.path.join(outPath, os.path.splitext(self.imageName)[0])
 
         if removeExisting and os.path.exists(outDir):
             shutil.rmtree(outDir, ignore_errors=True)
@@ -86,7 +86,7 @@ class Slicer:
 
         for i, tile in enumerate(tiles):
             tileName = "{:0>3d},{:0>3d}.png".format(tile.top, tile.left)
-            tile.image.save(outDir + '/' + tileName, "PNG")
+            tile.image.save(os.path.join(outDir, tileName), "PNG")
 
             data['tiles'].append({
                 'tileName': tileName,
