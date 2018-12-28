@@ -8,13 +8,13 @@ def main():
 
     # produces 294 tiles for orthophotos of size 17'500 x 12'000 px, with overlap of 20%
     config = SlicerConfig(tileSize=1024, baseOverlapFactor=0.2)
-    slicer = Slicer(imagePath='./in/Ortho/',
+    slicer = Slicer(imagePath='../data/in/Ortho/',
                     imageName='DOP25_LV95_1091-14_2013_1_13.tif')
 
     config.printDebugInformation(slicer.image.size)
 
     tiles = slicer.slice(config)
-    slicer.saveTiles(tiles, "./out/")
+    slicer.saveTiles(tiles, "../data/out/")
 
     # This stuff will be re-used for JSON and GeoData metadata
     # MAP_OFFSET = (0, 0)

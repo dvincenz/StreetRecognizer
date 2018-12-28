@@ -1,5 +1,5 @@
 class ImageProviderConfig:
-    def __init__(self, azure_blob_key: str = "key not set", azure_blob_account: str = "swisstopo", azure_blob_name: str = "rawdata", image_url: str = "./in/ortho"):
+    def __init__(self, azure_blob_key: str = "key not set", azure_blob_account: str = "swisstopo", azure_blob_name: str = "rawdata", image_url: str = "../data/in/ortho"):
         self.azure_blob_key = azure_blob_key
         self.azure_blob_account = azure_blob_account
         self.image_url = image_url
