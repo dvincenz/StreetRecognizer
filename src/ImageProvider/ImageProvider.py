@@ -21,7 +21,7 @@ class ImageProvider:
                     self._download(image.name)
                 if image.name.find("tif") >= 0:
                     tif_image_names.append(image.name)
-        if(tif_image_names):
+        if len(tif_image_names) == 0:
             print("no images with number " + image_number + " were found")
         return tif_image_names
 
@@ -46,7 +46,7 @@ class ImageProvider:
     
     def _set_to_lv95 (self, image_name):
         image_url = self.config.image_url + "/raw/" + image_name
-        bash_command = "./utils/gdal_edit.py -a_srs "+ self.EPSG_LV95 + " " + image_url
+        bash_command = "python ./utils/gdal_edit.py -a_srs "+ self.EPSG_LV95 + " " + image_url
         process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate() 
 
