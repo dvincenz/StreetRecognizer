@@ -1,8 +1,5 @@
 .vscode/
-src/out/
-src/in/Ortho/
-src/config/azure.key
-
+data/
 __pycache__
 *.dbf
 *.shp

@@ -2,7 +2,7 @@
 # FROM tensorflow/tensorflow:latest-gpu-py3
 FROM tensorflow/tensorflow:latest-py3
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/src
 
 RUN echo "alias py=python" > ~/.bash_aliases
 
@@ -16,8 +16,3 @@ RUN apt-get update \
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-
-#start docker
-#docker build -t challp .
-#docker run -v /mnt/hgfs/Repos/HSR/challangeProject/StreetRecognizer/src:/usr/src/app -it challp bash

@@ -1,20 +1,31 @@
+import argparse
+import os
 from PIL import Image
 
 from Slicer import Slicer
 from SlicerConfig import SlicerConfig
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Slice an image into equal, quadratic, optionally overlapping tiles.')
+    parser.add_argument('image', metavar='IMAGE', type=str, help='the image to slice')
+    parser.add_argument('target', metavar='TARGET', nargs='?', type=str, default='.', help='directory path to write the tiles to')
+    parser.add_argument('-s', '--size', metavar='SIZE', type=int, default=1024, help='size in pixels of a single tile (default: 1024)')
+    parser.add_argument('-o', '--overlap', metavar='OVERLAP', type=float, default=0.2, help='percentage of baseline tile overlapping (default: 0.2)')
+    return parser.parse_args()
+
 def main():
-    Image.MAX_IMAGE_PIXELS = 328125000
+    args = parse_args()
+
+    Image.MAX_IMAGE_PIXELS = 17500 * 12000
 
     # produces 294 tiles for orthophotos of size 17'500 x 12'000 px, with overlap of 20%
-    config = SlicerConfig(tileSize=1024, baseOverlapFactor=0.2)
-    slicer = Slicer(imagePath='./in/Ortho/',
-                    imageName='DOP25_LV95_1091-14_2013_1_13.tif')
+    config = SlicerConfig(tile_size=args.size, base_overlap_factor=args.overlap)
+    slicer = Slicer(image_path=os.path.dirname(args.image), image_name=os.path.basename(args.image))
 
-    config.printDebugInformation(slicer.image.size)
+    config.print_debug_information(slicer.image.size)
 
     tiles = slicer.slice(config)
-    slicer.saveTiles(tiles, "./out/")
+    slicer.save_tiles(tiles, config, args.target)
 
     # This stuff will be re-used for JSON and GeoData metadata
     # MAP_OFFSET = (0, 0)

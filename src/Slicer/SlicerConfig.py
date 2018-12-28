@@ -2,50 +2,50 @@ import math
 
 
 class SlicerConfig:
-    def __init__(self, tileSize: int, baseOverlapFactor: float):
-        self.tileSize = tileSize
-        self.baseOverlapFactor = baseOverlapFactor
+    def __init__(self, tile_size: int, base_overlap_factor: float):
+        self.tile_size = tile_size
+        self.base_overlap_factor = base_overlap_factor
         self.x = DimensionConfig(
-            tileSize=tileSize, baseOverlapFactor=baseOverlapFactor)
+            tile_size=tile_size, base_overlap_factor=base_overlap_factor)
         self.y = DimensionConfig(
-            tileSize=tileSize, baseOverlapFactor=baseOverlapFactor)
+            tile_size=tile_size, base_overlap_factor=base_overlap_factor)
 
-    def printDebugInformation(self, size: (int, int)):
-        sizeX, sizeY = size
-        numTilesX = self.x.getNumTiles(sizeX)
-        numTilesY = self.y.getNumTiles(sizeY)
-        print('X overlap: ' + self.x.getOverlapString(sizeX))
-        print('Y overlap: ' + self.y.getOverlapString(sizeY))
-        print('Expected Tiles: ' + str(numTilesX) + 'x' + str(numTilesY)
-              + ' (' + str(numTilesX * numTilesY) + ')')
+    def print_debug_information(self, size: (int, int)):
+        width, height = size
+        num_tiles_x = self.x.get_num_tiles(width)
+        num_tiles_y = self.y.get_num_tiles(height)
+        print('X overlap: ' + self.x.get_overlap_string(width))
+        print('Y overlap: ' + self.y.get_overlap_string(height))
+        print('Expected Tiles: ' + str(num_tiles_x) + 'x' + str(num_tiles_y)
+              + ' (' + str(num_tiles_x * num_tiles_y) + ')')
         print('The current settings produce the following error, due to rounding pixels per tile:')
-        print('    X: ' + self.x.getRoundingErrorString(sizeX))
-        print('    Y: ' + self.y.getRoundingErrorString(sizeY))
+        print('    X: ' + self.x.get_rounding_error_string(width))
+        print('    Y: ' + self.y.get_rounding_error_string(height))
 
 
 class DimensionConfig:
-    def __init__(self, tileSize: int, baseOverlapFactor: float):
-        self.tileSize = tileSize
-        self.baseOverlap = tileSize * baseOverlapFactor
+    def __init__(self, tile_size: int, base_overlap_factor: float):
+        self.tile_size = tile_size
+        self.base_overlap = tile_size * base_overlap_factor
 
-    def getNumTiles(self, size: int):
-        return math.floor((size - self.baseOverlap) / (self.tileSize - self.baseOverlap) + 0.5)
+    def get_num_tiles(self, size: int):
+        return math.floor((size - self.base_overlap) / (self.tile_size - self.base_overlap) + 0.5)
 
-    def getOverlapOffset(self, size: int):
-        numTiles = self.getNumTiles(size)
-        return math.ceil((size - numTiles * self.tileSize) / (1 - numTiles))
+    def get_overlap_offset(self, size: int):
+        num_tiles = self.get_num_tiles(size)
+        return math.ceil((size - num_tiles * self.tile_size) / (1 - num_tiles))
 
-    def getOverlapString(self, size: int):
-        return str(self.getOverlapOffset(size)) + " ({0:.2%})".format(self.getOverlapOffset(size) / self.tileSize)
+    def get_overlap_string(self, size: int):
+        return str(self.get_overlap_offset(size)) + " ({0:.2%})".format(self.get_overlap_offset(size) / self.tile_size)
 
-    def getRoundingErrorString(self, size: int):
-        numTiles = self.getNumTiles(size)
-        overlapOffset = self.getOverlapOffset(size)
-        actualSize = numTiles * (self.tileSize - overlapOffset) + overlapOffset
-        if actualSize > size:
-            return str(actualSize - size) + 'px of "black borders" ({0:.4%})'.format((actualSize - size) / size)
+    def get_rounding_error_string(self, size: int):
+        num_tiles = self.get_num_tiles(size)
+        overlap_offset = self.get_overlap_offset(size)
+        actual_size = num_tiles * (self.tile_size - overlap_offset) + overlap_offset
+        if actual_size > size:
+            return str(actual_size - size) + 'px of "black borders" ({0:.4%})'.format((actual_size - size) / size)
 
-        if actualSize < size:
-            return str(size - actualSize) + 'px missing ({0:.4%})'.format((size - actualSize) / size)
+        if actual_size < size:
+            return str(size - actual_size) + 'px missing ({0:.4%})'.format((size - actual_size) / size)
 
         return 'none!'
