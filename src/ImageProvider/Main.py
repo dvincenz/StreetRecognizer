@@ -9,9 +9,9 @@ def main():
 
     print("init downloader, this may take some time")
     config = ImageProviderConfig()
-    config.SetAzureKeyFromConfig("./config/azure.key")
-    imageProvider = ImageProvider(config)
-    imageProvider.GetImageAsWgs84(sys.argv[1])
+    config.set_azure_key_from_config("./config/azure.key")
+    image_provider = ImageProvider(config)
+    image_provider.get_image_as_wgs84(sys.argv[1])
 
 if __name__ == "__main__":
     main()
