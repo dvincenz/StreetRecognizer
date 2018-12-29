@@ -16,16 +16,35 @@ def main():
     #todo: defining buffer for other types of ways. may export config in config file
     buffer_definitons = {}
     buffer_definitons["unclassified"] = 0.000023
-    buffer_definitons["tertiary"] = 0.000030
+    buffer_definitons["tertiary"] = 0.000035
+    buffer_definitons["tertiary_link"] = 0.000035
     buffer_definitons["footway"] = 0.000013
     buffer_definitons["path"] = 0.000013
+    buffer_definitons["pedestrian"] = 0.000013
     buffer_definitons["track"] = 0.000020
+    buffer_definitons["primary"] = 0.000045
+    buffer_definitons["primary_link"] = 0.000045
+    buffer_definitons["motorway_link"] = 0.000045
+    buffer_definitons["motorway"] = 0.000045
+    buffer_definitons["living_street"] = 0.000030
+    buffer_definitons["cycleway"] = 0.000020
+    buffer_definitons["footway"] = 0.000013
+    buffer_definitons["construction"] = 0.000025
+    buffer_definitons["residential"] = 0.000030
+    buffer_definitons["steps"] = 0.000013
+    buffer_definitons["secondary"] = 0.000040
+    buffer_definitons["trunk"] = 0.000040
+    buffer_definitons["trunk_link"] = 0.000040
+    buffer_definitons["service"] = 0.000025
     config = OsmDataProviderConfig(output_path = args.target, buffer = buffer_definitons)
     provider = OsmDataProvider(config)
     if args.imagepath:
-        return provider.export_ways_by_image(args.imagepath)
+        provider.export_ways_by_image(args.imagepath)
+        print(provider.get_not_defined_buffer())
+        return
     if args.lowerleft and args.upperright:
-        return provider.export_ways_by_coordinates(args.lowerleft, args.upperright)
+        provider.export_ways_by_coordinates(args.lowerleft, args.upperright)
+        return
     raise ValueError('Image path or coordinates need to be set as argument. Use -h for more information')
 
 if __name__ == "__main__":

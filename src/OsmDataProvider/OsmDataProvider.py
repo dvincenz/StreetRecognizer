@@ -12,6 +12,7 @@ import matplotlib.pyplot as plot
 class OsmDataProvider:
     def __init__(self, config: OsmDataProviderConfig):
         self.config = config
+        self.not_defined_buffer = {}
         self.api = overpass.API()
 
     def export_ways_by_coordinates(self, lower_left: [], upper_right: [],  output_file: str = ""):
@@ -30,6 +31,8 @@ class OsmDataProvider:
         coordinates = self._get_corner_coordinates(gt, ds.RasterXSize, ds.RasterYSize)
         self.export_ways_by_coordinates(coordinates[1], coordinates[2], output_file_name)
 
+    def get_not_defined_buffer(self):
+        return self.not_defined_buffer
     
     def _get_ways(self, response: geojson.feature.FeatureCollection):
         features = response["features"]
@@ -63,9 +66,14 @@ class OsmDataProvider:
         return lines
 
     def _get_buffer(self, way):
+        highway = way["properties"]["highway"]
         try:
-            return self.config.buffer[way["properties"]["highway"]]
+            return self.config.buffer[highway]
         except:
+            if highway in self.not_defined_buffer:
+                self.not_defined_buffer[highway] += 1 
+            else:
+                self.not_defined_buffer[highway] = 1
             return self.config.buffer["default"]
 
 
