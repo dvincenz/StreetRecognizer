@@ -3,3 +3,6 @@ requests
 exifread
 azure-storage
 overpass
+shapely
+matplotlib
+descartes 
