@@ -40,7 +40,7 @@ def main():
     provider = OsmDataProvider(config)
     if args.imagepath:
         provider.export_ways_by_image(args.imagepath)
-        print(provider.get_not_defined_buffer())
+        print("not defined buffer " + provider.get_not_defined_buffer())
         return
     if args.lowerleft and args.upperright:
         provider.export_ways_by_coordinates(args.lowerleft, args.upperright)
