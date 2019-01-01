@@ -1,3 +1,2 @@
-from Main import main
-
-main()
+from __init__ import run
+run()
