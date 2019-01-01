@@ -1,8 +1,12 @@
-from azure.storage.blob import BlockBlobService, PublicAccess
-import os
 from os import walk
+import os
 import subprocess
-from ImageProviderConfig import ImageProviderConfig
+from azure.storage.blob import BlockBlobService
+try:
+    from .ImageProviderConfig import ImageProviderConfig
+except Exception:
+    from ImageProviderConfig import ImageProviderConfig
+
 
 class ImageProvider:
     EPSG_LV95 = "EPSG:2056"
@@ -11,8 +15,8 @@ class ImageProvider:
         self.config = config
         self.all_images = []
         if self.config.is_azure:
-            self.block_blob_service = BlockBlobService(account_name=config.azure_blob_account, account_key=config.azure_blob_key) 
-            for image in self.block_blob_service.list_blobs(config.azure_blob_name):
+            self.block_blob_service = BlockBlobService(account_name=self.config.azure_blob_account, account_key=self.config.azure_blob_key) 
+            for image in self.block_blob_service.list_blobs(self.config.azure_blob_name):
                 self.all_images.append(image.name)
         else:
             files = []
@@ -45,7 +49,7 @@ class ImageProvider:
         path = self.config.input_url + "/" + image_name
         path_out = self.config.output_url + "/" + image_name
         if os.path.exists(path_out):
-            print("file " + path_out + "already exists, skip tranformation")
+            print("file " + path_out + " already exists, skip tranformation")
             return
         print("convertig image " + image_name + " to WGS84, that may take some time")
         bash_command = "gdalwarp " + path + " " + path_out + " -s_srs " + self.EPSG_LV95 + " -t_srs " + self.EPSG_WGS84

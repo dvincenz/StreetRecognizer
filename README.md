@@ -60,6 +60,26 @@ py ImageProvider -h
 py ImageProvider 1195-22
 ```
 
+### Example in Python 
+
+You can use this module in python as single executor, the same way as you use it in the console
+```python
+import ImageProvider
+
+ImageProvider.Provider(imageNumber="1151-22", azureaccount="swisstopo")
+```
+
+The other possibility is to use the module as object for advanced usage
+```python
+import ImageProvider
+from ImageProvider import ImageProviderConfig
+
+config = ImageProviderConfig(azure_blob_account="swisstopo")
+images = ImageProvider.Provider(config=config)
+images.get_image("185-34")
+
+```
+
 ## Osm data provider
 Provides osm data for a defined coordinate area, or for the coordinates of a gifTiff image
 
