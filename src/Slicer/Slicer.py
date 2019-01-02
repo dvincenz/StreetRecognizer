@@ -4,6 +4,7 @@ import os
 import shutil
 
 from PIL import Image
+from GeoDataProvider.GeoDataProvider import GeoDataProvider
 
 from SlicerConfig import SlicerConfig
 
@@ -60,6 +61,10 @@ class Slicer:
 
         width, height = self.image.size
 
+        geo_data_provider = GeoDataProvider(geo_tiff_path=self.image.filename)
+        c_left, c_top = geo_data_provider.pixel_to_coords(0, 0)
+        c_right, c_bottom = geo_data_provider.pixel_to_coords(width, height)
+
         data = {}
         data['imageName'] = self.image_name
         data['imageSize'] = {
@@ -67,10 +72,10 @@ class Slicer:
             'height': height
         }
         data['wgs84'] = {
-            'top': 0,
-            'left': 0,
-            'bottom': 0,
-            'right': 0
+            'top': c_top,
+            'left': c_left,
+            'bottom': c_bottom,
+            'right': c_right
         }
         data['tileConfig'] = {
             'tileSize': config.tile_size,
@@ -88,6 +93,11 @@ class Slicer:
             tile_name = "{:0>3d},{:0>3d}.png".format(tile.top, tile.left)
             tile.image.save(os.path.join(out_dir, tile_name), "PNG")
 
+            c_left, c_top = geo_data_provider.pixel_to_coords(
+                tile.left, tile.top)
+            c_right, c_bottom = geo_data_provider.pixel_to_coords(
+                tile.right, tile.bottom)
+
             data['tiles'].append({
                 'tileName': tile_name,
                 'pixels': {
@@ -97,10 +107,10 @@ class Slicer:
                     'right': tile.right
                 },
                 'wgs84': {
-                    'top': 0,
-                    'left': 0,
-                    'bottom': 0,
-                    'right': 0
+                    'top': c_top,
+                    'left': c_left,
+                    'bottom': c_bottom,
+                    'right': c_right
                 }
             })
 
