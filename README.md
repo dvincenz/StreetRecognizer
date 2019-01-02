@@ -60,5 +60,57 @@ py ImageProvider -h
 py ImageProvider 1195-22
 ```
 
+### Example in Python 
+
+You can use this module in python as single executor, the same way as you use it in the console
+```python
+import ImageProvider
+
+ImageProvider.Provider(imageNumber="1151-22", azureaccount="swisstopo")
+```
+
+The other possibility is to use the module as object for advanced usage
+```python
+import ImageProvider
+from ImageProvider import ImageProviderConfig
+
+config = ImageProviderConfig(azure_blob_account="swisstopo")
+images = ImageProvider.Provider(config=config)
+images.get_image("185-34")
+
+```
+
+## Osm data provider
+Provides osm data for a defined coordinate area, or for the coordinates of a geoTiff image
+
+### Usage in console
+```bash
+py OsmDataProvider -h
+```
+
+### Example in console
+```bash
+py OsmDataProvider ../data/in/osm/vector -p ../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif
+```
+
+### Example in Python
+
+You can use this module in python as single executor, the same way as you use it in the console
+```python
+import OsmDataProvider
+OsmDataProvider.Provider(target="../data/in/osm/vector", imagepath="../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif")
+```
+
+The other possibility is to use the module as object for advanced usage
+```python
+import OsmDataProvider
+from OsmDataProvider import OsmDataProviderConfig
+
+config = OsmDataProviderConfig(output_path = "../data/in/osm/vector", buffer={})
+osmData = OsmDataProvider.Provider(config=config)
+osmData.export_ways_by_image('../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif')
+
+```
+
 ## Model
 You can find [here](model.md) some details about the model.
