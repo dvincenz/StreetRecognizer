@@ -81,9 +81,9 @@ images.get_image("185-34")
 ```
 
 ## Osm data provider
-Provides osm data for a defined coordinate area, or for the coordinates of a gifTiff image
+Provides osm data for a defined coordinate area, or for the coordinates of a geoTiff image
 
-### usage in console
+### Usage in console
 ```bash
 py OsmDataProvider -h
 ```
