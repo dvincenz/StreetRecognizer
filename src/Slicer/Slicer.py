@@ -3,8 +3,11 @@ import math
 import os
 import shutil
 
+
 from PIL import Image
 from GeoDataProvider.GeoDataProvider import GeoDataProvider
+from OsmDataProvider.OsmDataProvider import OsmDataProvider
+from OsmDataProvider.OsmDataProviderConfig import OsmDataProviderConfig
 
 from SlicerConfig import SlicerConfig
 
@@ -33,6 +36,7 @@ class Slicer:
         max_tiles = math.ceil(max_x / step_x) * math.ceil(max_y / step_y)
 
         tiles = []
+        # TODO: This might be multi-threadable, depending on behavior of image.crop, however this isn't too slow, anyway
         for x in range(0, max_x, step_x):
             for y in range(0, max_y, step_y):
                 left = x
@@ -65,6 +69,9 @@ class Slicer:
         c_left, c_top = geo_data_provider.pixel_to_coords(0, 0)
         c_right, c_bottom = geo_data_provider.pixel_to_coords(width, height)
 
+        osm_config = OsmDataProviderConfig(output_path=None)
+        osm_data_provider = OsmDataProvider(config=osm_config)
+
         data = {}
         data['imageName'] = self.image_name
         data['imageSize'] = {
@@ -89,6 +96,7 @@ class Slicer:
         data['tileDirectory'] = os.path.splitext(self.image_name)[0]
         data['tiles'] = []
 
+        # TODO: This should be multi-threadable (with non-deterministic order of tiles in the data-array)
         for i, tile in enumerate(tiles):
             tile_name = "{:0>3d},{:0>3d}.png".format(tile.top, tile.left)
             tile.image.save(os.path.join(out_dir, tile_name), "PNG")
@@ -97,6 +105,9 @@ class Slicer:
                 tile.left, tile.top)
             c_right, c_bottom = geo_data_provider.pixel_to_coords(
                 tile.right, tile.bottom)
+
+            # FIXME: This is slow AF, should probably only get this data once per orthofoto and calculate for tiles manually
+            ways = osm_data_provider.get_ways_by_coordinates(lower_left=[c_left, c_bottom], upper_right=[c_right, c_top])
 
             data['tiles'].append({
                 'tileName': tile_name,
@@ -111,6 +122,10 @@ class Slicer:
                     'left': c_left,
                     'bottom': c_bottom,
                     'right': c_right
+                },
+                'ways': {
+                    'features': ways,
+                    'type': 'FeatureCollection'
                 }
             })
 

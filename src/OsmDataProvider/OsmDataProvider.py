@@ -17,13 +17,16 @@ class OsmDataProvider:
         self.not_defined_buffer = {}
         self.api = overpass.API()
 
-    def export_ways_by_coordinates(self, lower_left: [], upper_right: [],  output_file: str = ""):
-        if output_file == "":
-            output_file = self.config.default_output_file_name
+    def get_ways_by_coordinates(self, lower_left: [], upper_right: []):
         if not self._validate_wgs84_coordinates(lower_left) or not self._validate_wgs84_coordinates(upper_right):
             raise ValueError('The coordinates of the image are not in range. Given coordinates ' + str(lower_left) + ', ' + str(upper_right))
         response = self.api.get('(way["highway"] ({0}, {1}, {2}, {3}); >; ); out geom;'.format(lower_left[1], lower_left[0], upper_right[1], upper_right[0]))
-        ways_as_line = self._get_ways(response)
+        return self._get_ways(response)
+
+    def export_ways_by_coordinates(self, lower_left: [], upper_right: [], output_file: str = ""):
+        if output_file == "":
+            output_file = self.config.default_output_file_name
+        ways_as_line = self.get_ways_by_coordinates(lower_left, upper_right)
         self._write_geojson(ways_as_line, self.config.output_path + "/" + output_file + "_line.json")
         ways_as_polygon = self._tranform_ways_to_polygons(ways_as_line)
         self._write_geojson(ways_as_polygon, self.config.output_path + "/" + output_file + "_polygon.json")
