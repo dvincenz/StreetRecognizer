@@ -1,19 +1,21 @@
 import argparse
-from ImageProcessor.ImageProcessor import ImageProcessor
-from ImageProcessor.ImageProcessorConfig import ImageProcessorConfig
+from ImageProcessor import ImageProcessor
+from ImageProcessorConfig import ImageProcessorConfig
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='The ImageProcessor class can modify geo refrenced images based or with geojson data')
-    parser.add_argument('target', metavar='TARGETPATH', type=str, help='output path to write coputed data')
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+The ImageProcessor class can modify geo refrenced images based or with geojson data 
+Method used to tranform data: 
+    `rasterizeGeojson` convert geojson to geotiff file, using a geoTiff (ortho photo) 
+        as coordinate and resolution provider, parameter -t is needed
+    `cutgeoTiffs` cut one geoTiff based on the resolution of an other geoTiff, parameter -t is needed
+    `excreteGeoTiff` excrete GeoTiff based on geoJson vector data (not implemented yet)
+    `getPolygonShares` get proportial size of polygon (or poligon atributes) in defined are (not implemented yet)''')
+    
     parser.add_argument('source', metavar='SOURCEPATH', type=str, help='path to source file')
-    parser.add_argument('-m', '--method', metavar='METHOD', type=str, help='''
-        Method used to tranform data: 
-            `rasterizeGeojson` convert geojson to geotiff file, using a geoTiff (ortho photo) as coordinate and resolution provider, parameter -t is needed
-            `cutgeoTiffs` cut one geoTiff based on the resolution of an other geoTiff, parameter -t is needed
-            `excreteGeoTiff` excrete GeoTiff based on geoJson vector data (not implemented yet)
-            `getPolygonShares` get size of polygon in defined are (not implemented yet)
-    ''')
+    parser.add_argument('target', metavar='TARGETPATH', type=str, help='output path to write coputed data')
+    parser.add_argument('-m', '--method', metavar='METHOD', type=str, help='select method (see main description for more information)')
     parser.add_argument('-t', '--template', metavar='TEMPLATE', type=str, help='template path of geoTiff file to cut other geoTiff (source) file')
     return vars(parser.parse_args())
     
