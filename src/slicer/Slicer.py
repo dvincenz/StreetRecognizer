@@ -3,11 +3,8 @@ import math
 import os
 import shutil
 
-
 from PIL import Image
 from geodataprovider.GeoDataProvider import GeoDataProvider
-from osmdataprovider.OsmDataProvider import OsmDataProvider
-from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 from slicer.SlicerConfig import SlicerConfig
 
 
@@ -20,9 +17,10 @@ class Tile:
 
 
 class Slicer:
-    def __init__(self, image_path: str, image_name: str):
+    def __init__(self, image_path: str, image_name: str, osm_data: dict):
         self.image_name = image_name
         self.image = Image.open(os.path.join(image_path, image_name))
+        self.osm_data = osm_data
 
     def slice(self, config: SlicerConfig):
         print('slicing...')
@@ -38,19 +36,19 @@ class Slicer:
         # TODO: This might be multi-threadable, depending on behavior of image.crop, however this isn't too slow, anyway
         for x in range(0, max_x, step_x):
             for y in range(0, max_y, step_y):
-                left = x
-                top = y
-                right = left + config.tile_size
-                bottom = top + config.tile_size
-                tile_image = self.image.crop((left, top, right, bottom))
-                tile = Tile(image=tile_image, coords=(
-                    (left, top), (right, bottom)))
-                tiles.append(tile)
+                tiles.append(self._slice_tile(config=config, x=x, y=y))
+                self._print_progress(len(tiles), max_tiles)
 
-                if len(tiles) % 50 == 0:
-                    print('  {0:d}/{1:d} ({2:.1%})'.format(len(tiles),
-                                                           max_tiles, len(tiles) / max_tiles))
         return tiles
+
+    def _slice_tile(self, config: SlicerConfig, x: int, y: int):
+        left = x
+        top = y
+        right = left + config.tile_size
+        bottom = top + config.tile_size
+        tile_image = self.image.crop((left, top, right, bottom))
+        tile = Tile(image=tile_image, coords=((left, top), (right, bottom)))
+        return tile
 
     def save_tiles(self, tiles: [Tile], config: SlicerConfig, out_path: str, remove_existing=True):
         print('saving... (to ' + os.path.abspath(out_path) + ')')
@@ -62,14 +60,24 @@ class Slicer:
 
         os.makedirs(out_dir, exist_ok=True)
 
-        width, height = self.image.size
-
         geo_data_provider = GeoDataProvider(geo_tiff_path=self.image.filename)
+
+        data = self._init_ortho_data(
+            geo_data_provider=geo_data_provider, config=config)
+
+        # TODO: This should be multi-threadable (with non-deterministic order of tiles in the data-array)
+        for i, tile in enumerate(tiles):
+            data['tiles'].append(self._save_tile(
+                tile=tile, out_dir=out_dir, geo_data_provider=geo_data_provider))
+            self._print_progress(i+1, len(tiles))
+
+        with open(out_dir + '.json', 'w') as outfile:
+            json.dump(data, outfile, sort_keys=True, indent=4)
+
+    def _init_ortho_data(self, geo_data_provider: GeoDataProvider, config: SlicerConfig):
+        width, height = self.image.size
         c_left, c_top = geo_data_provider.pixel_to_coords(0, 0)
         c_right, c_bottom = geo_data_provider.pixel_to_coords(width, height)
-
-        osm_config = OsmDataProviderConfig(output_path=None)
-        osm_data_provider = OsmDataProvider(config=osm_config)
 
         data = {}
         data['imageName'] = self.image_name
@@ -94,44 +102,46 @@ class Slicer:
         }
         data['tileDirectory'] = os.path.splitext(self.image_name)[0]
         data['tiles'] = []
+        return data
 
-        # TODO: This should be multi-threadable (with non-deterministic order of tiles in the data-array)
-        for i, tile in enumerate(tiles):
-            tile_name = "{:0>3d},{:0>3d}.png".format(tile.top, tile.left)
-            tile.image.save(os.path.join(out_dir, tile_name), "PNG")
+    @staticmethod
+    def _save_tile(tile: Tile, out_dir: str, geo_data_provider: GeoDataProvider):
+        tile_name = "{:0>3d},{:0>3d}.png".format(tile.top, tile.left)
+        tile.image.save(os.path.join(out_dir, tile_name), "PNG")
 
-            c_left, c_top = geo_data_provider.pixel_to_coords(
-                tile.left, tile.top)
-            c_right, c_bottom = geo_data_provider.pixel_to_coords(
-                tile.right, tile.bottom)
+        c_left, c_top = geo_data_provider.pixel_to_coords(
+            tile.left, tile.top)
+        c_right, c_bottom = geo_data_provider.pixel_to_coords(
+            tile.right, tile.bottom)
 
-            # FIXME: This is slow AF, should probably only get this data once per orthofoto and calculate for tiles manually
-            #ways = osm_data_provider.get_ways_by_coordinates(lower_left=[c_left, c_bottom], upper_right=[c_right, c_top])
-            ways = []
+        # FIXME: This is slow AF, should probably only get this data once per orthofoto and calculate for tiles manually
+        #ways = osm_data_provider.get_ways_by_coordinates(lower_left=[c_left, c_bottom], upper_right=[c_right, c_top])
+        ways = []
 
-            data['tiles'].append({
-                'tileName': tile_name,
-                'pixels': {
-                    'top': tile.top,
-                    'left': tile.left,
-                    'bottom': tile.bottom,
-                    'right': tile.right
-                },
-                'wgs84': {
-                    'top': c_top,
-                    'left': c_left,
-                    'bottom': c_bottom,
-                    'right': c_right
-                },
-                'ways': {
-                    'features': ways,
-                    'type': 'FeatureCollection'
-                }
-            })
+        return {
+            'tileName': tile_name,
+            'pixels': {
+                'top': tile.top,
+                'left': tile.left,
+                'bottom': tile.bottom,
+                'right': tile.right
+            },
+            'wgs84': {
+                'top': c_top,
+                'left': c_left,
+                'bottom': c_bottom,
+                'right': c_right
+            },
+            'ways': {
+                'features': ways,
+                'type': 'FeatureCollection'
+            }
+        }
 
-            if (i+1) % 50 == 0:
-                print('  {0:d}/{1:d} ({2:.1%})'.format((i+1),
-                                                       len(tiles), (i+1) / len(tiles)))
-
-        with open(out_dir + '.json', 'w') as outfile:
-            json.dump(data, outfile, sort_keys=True, indent=4)
+    @staticmethod
+    def _print_progress(num_processed: int, num_total: int):
+        if num_processed % 50 == 0:
+            print('  {0:d}/{1:d} ({2:.1%})'.format(
+                num_processed,
+                num_total,
+                num_processed / num_total))
