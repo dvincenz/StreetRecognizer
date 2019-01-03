@@ -4,12 +4,10 @@ import geojson
 from shapely.geometry import LineString, mapping
 import matplotlib.pyplot as plot
 from osgeo import gdal
-try:
-    from .OsmDataProviderConfig import OsmDataProviderConfig
-except Exception:
-    from OsmDataProviderConfig import OsmDataProviderConfig
 import overpass
 from descartes import PolygonPatch
+
+from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 class OsmDataProvider:
     def __init__(self, config: OsmDataProviderConfig):

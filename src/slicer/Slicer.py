@@ -5,11 +5,10 @@ import shutil
 
 
 from PIL import Image
-from GeoDataProvider.GeoDataProvider import GeoDataProvider
-from OsmDataProvider.OsmDataProvider import OsmDataProvider
-from OsmDataProvider.OsmDataProviderConfig import OsmDataProviderConfig
-
-from SlicerConfig import SlicerConfig
+from geodataprovider.GeoDataProvider import GeoDataProvider
+from osmdataprovider.OsmDataProvider import OsmDataProvider
+from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
+from slicer.SlicerConfig import SlicerConfig
 
 
 class Tile:
@@ -107,7 +106,8 @@ class Slicer:
                 tile.right, tile.bottom)
 
             # FIXME: This is slow AF, should probably only get this data once per orthofoto and calculate for tiles manually
-            ways = osm_data_provider.get_ways_by_coordinates(lower_left=[c_left, c_bottom], upper_right=[c_right, c_top])
+            #ways = osm_data_provider.get_ways_by_coordinates(lower_left=[c_left, c_bottom], upper_right=[c_right, c_top])
+            ways = []
 
             data['tiles'].append({
                 'tileName': tile_name,

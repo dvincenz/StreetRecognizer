@@ -1,7 +1,7 @@
 import argparse
 
-from OsmDataProvider.OsmDataProvider import OsmDataProvider
-from OsmDataProvider.OsmDataProviderConfig import OsmDataProviderConfig
+from osmdataprovider.OsmDataProvider import OsmDataProvider
+from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 def parse_args():
     parser = argparse.ArgumentParser(description='get osm data for a wgs84 geotiff or custom coordinate box')

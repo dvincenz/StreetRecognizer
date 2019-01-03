@@ -1,8 +1,8 @@
 import argparse
 import sys
 
-from ImageProvider.ImageProvider import ImageProvider
-from ImageProvider.ImageProviderConfig import ImageProviderConfig
+from imageprovider.ImageProvider import ImageProvider
+from imageprovider.ImageProviderConfig import ImageProviderConfig
 
 def parse_args():
     parser = argparse.ArgumentParser(description='get images from an azure blob storage and convert images from LV95 to WGS84 coordinate system')
