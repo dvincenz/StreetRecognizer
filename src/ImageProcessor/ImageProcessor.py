@@ -22,7 +22,7 @@ class ImageProcessor:
 
         target_image = gdal.GetDriverByName('GTiff').Create(os.path.join(self.config.output_path, file_name), cols, rows*-1, 1, gdal.GDT_Byte) 
         target_image.SetGeoTransform((x_min, pixel_width, 0, y_max, 0, pixel_height))
-        # todo projection not as string
+        # todo set projection not as string
         target_image.SetProjection('GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],AUTHORITY["EPSG","4326"]]')
         if self.burn_attribute:
             gdal.RasterizeLayer(target_image, [1], jsonlayer, options=["ATTRIBUTE="+self.burn_attribute])

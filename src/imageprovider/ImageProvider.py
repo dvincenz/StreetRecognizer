@@ -36,13 +36,26 @@ class ImageProvider:
         if len(tif_image_names) == 0:
             print("no images with number " + image_number + " were found")
         return tif_image_names
-
+    
+    def get_images_names(self, image_number: str):
+        tif_image_names = []
+        for image in self.all_images:
+            if image.find("tif") >= 0 and image.find(image_number) >=0:
+                tif_image_names.append(image)
+        return tif_image_names
+    
     def get_image_as_wgs84(self, image_number):
-        _image_names = self.get_image(image_number)
-        for _image_name in _image_names:
-            self._set_to_lv95(_image_name)
-            self._convert_to_wgs84(_image_name)
-
+        image_names = self.get_image(image_number)
+        downloaded_images = []
+        for image_name in image_names:
+            try:
+                self._set_to_lv95(image_name)
+                self._convert_to_wgs84(image_name)
+                downloaded_images.append(image_name)
+            except:
+                pass
+        return downloaded_images
+ 
     def _convert_to_wgs84 (self, image_name):
         path = self.config.input_url + "/" + image_name
         path_out = self.config.output_url + "/" + image_name
