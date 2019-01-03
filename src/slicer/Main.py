@@ -2,8 +2,8 @@ import argparse
 import os
 from PIL import Image
 
-from Slicer import Slicer
-from SlicerConfig import SlicerConfig
+from slicer.Slicer import Slicer
+from slicer.SlicerConfig import SlicerConfig
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Slice an image into equal, quadratic, optionally overlapping tiles.')

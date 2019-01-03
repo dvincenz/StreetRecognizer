@@ -2,10 +2,8 @@ from os import walk
 import os
 import subprocess
 from azure.storage.blob import BlockBlobService
-try:
-    from .ImageProviderConfig import ImageProviderConfig
-except Exception:
-    from ImageProviderConfig import ImageProviderConfig
+
+from imageprovider.ImageProviderConfig import ImageProviderConfig
 
 
 class ImageProvider:

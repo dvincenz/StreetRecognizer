@@ -40,13 +40,13 @@ docker run -v "$(Get-Location):/usr/src/app" --name street-recognizer -it street
 #### Usage
 
 ```bash
-py Slicer -h
+py slicer -h
 ```
 
 #### Example
 
 ```bash
-py Slicer ../data/in/Ortho/DOP25_LV95_1091-14_2013_1_13.tif ../data/out
+py slicer ../data/in/ortho/wgs84/DOP25_LV95_1091-14_2013_1_13.tif ../data/out
 ```
 
 ### Image provider
@@ -56,13 +56,13 @@ The image provider, downloads images from an azure blob storage and convert the 
 #### Usage
 
 ```bash
-py ImageProvider -h
+py imageprovider -h
 ```
 
 #### Example
 
 ```bash
-py ImageProvider 1195-22
+py imageprovider 1195-22
 ```
 
 #### Example in Python
@@ -94,13 +94,13 @@ Provides osm data for a defined coordinate area, or for the coordinates of a geo
 #### Usage in console
 
 ```bash
-py OsmDataProvider -h
+py osmdataprovider -h
 ```
 
 #### Example in console
 
 ```bash
-py OsmDataProvider ../data/in/osm/vector -p ../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif
+py osmdataprovider ../data/in/osm/vector -p ../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif
 ```
 
 #### Example in Python
