@@ -5,6 +5,9 @@ import shutil
 
 from PIL import Image
 from geodataprovider.GeoDataProvider import GeoDataProvider
+from osmdataprovider.Utils import GeoPoint
+from osmdataprovider.Utils import GeoRect
+from osmdataprovider.Utils import get_features_intersecting_rect
 from slicer.SlicerConfig import SlicerConfig
 
 
@@ -22,7 +25,7 @@ class Slicer:
         self.image = Image.open(os.path.join(image_path, image_name))
         self.osm_data = osm_data
 
-    def slice(self, config: SlicerConfig):
+    def slice(self, config: SlicerConfig) -> [Tile]:
         print('slicing...')
 
         width, height = self.image.size
@@ -76,8 +79,8 @@ class Slicer:
 
     def _init_ortho_data(self, geo_data_provider: GeoDataProvider, config: SlicerConfig):
         width, height = self.image.size
-        c_left, c_top = geo_data_provider.pixel_to_coords(0, 0)
-        c_right, c_bottom = geo_data_provider.pixel_to_coords(width, height)
+        top_left = geo_data_provider.pixel_to_geo_point(0, 0)
+        bottom_right = geo_data_provider.pixel_to_geo_point(width, height)
 
         data = {}
         data['imageName'] = self.image_name
@@ -86,10 +89,10 @@ class Slicer:
             'height': height
         }
         data['wgs84'] = {
-            'top': c_top,
-            'left': c_left,
-            'bottom': c_bottom,
-            'right': c_right
+            'top': top_left.north,
+            'left': top_left.east,
+            'bottom': bottom_right.north,
+            'right': bottom_right.east
         }
         data['tileConfig'] = {
             'tileSize': config.tile_size,
@@ -104,19 +107,18 @@ class Slicer:
         data['tiles'] = []
         return data
 
-    @staticmethod
-    def _save_tile(tile: Tile, out_dir: str, geo_data_provider: GeoDataProvider):
+    def _save_tile(self, tile: Tile, out_dir: str, geo_data_provider: GeoDataProvider):
         tile_name = "{:0>3d},{:0>3d}.png".format(tile.top, tile.left)
         tile.image.save(os.path.join(out_dir, tile_name), "PNG")
 
-        c_left, c_top = geo_data_provider.pixel_to_coords(
+        top_left = geo_data_provider.pixel_to_geo_point(
             tile.left, tile.top)
-        c_right, c_bottom = geo_data_provider.pixel_to_coords(
+        bottom_right = geo_data_provider.pixel_to_geo_point(
             tile.right, tile.bottom)
 
-        # FIXME: This is slow AF, should probably only get this data once per orthofoto and calculate for tiles manually
-        #ways = osm_data_provider.get_ways_by_coordinates(lower_left=[c_left, c_bottom], upper_right=[c_right, c_top])
-        ways = []
+        ways = get_features_intersecting_rect(
+            osm_data=self.osm_data,
+            rect=GeoRect(top_left, bottom_right))
 
         return {
             'tileName': tile_name,
@@ -127,10 +129,10 @@ class Slicer:
                 'right': tile.right
             },
             'wgs84': {
-                'top': c_top,
-                'left': c_left,
-                'bottom': c_bottom,
-                'right': c_right
+                'top': top_left.north,
+                'left': top_left.east,
+                'bottom': bottom_right.north,
+                'right': bottom_right.east
             },
             'ways': {
                 'features': ways,
