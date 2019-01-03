@@ -25,7 +25,7 @@ def main():
     config.print_debug_information(slicer.image.size)
 
     tiles = slicer.slice(config)
-    slicer.save_tiles(tiles, config, args.target)
+    slicer.save_tiles(tiles=tiles, config=config, out_path=args.target)
 
     # This stuff will be re-used for JSON and GeoData metadata
     # MAP_OFFSET = (0, 0)

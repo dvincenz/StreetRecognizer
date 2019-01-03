@@ -1,11 +1,8 @@
-import sys
-try:
-    from .ImageProviderConfig import ImageProviderConfig
-    from .ImageProvider import ImageProvider
-except Exception:
-    from ImageProviderConfig import ImageProviderConfig
-    from ImageProvider import ImageProvider
 import argparse
+import sys
+
+from ImageProvider.ImageProvider import ImageProvider
+from ImageProvider.ImageProviderConfig import ImageProviderConfig
 
 def parse_args():
     parser = argparse.ArgumentParser(description='get images from an azure blob storage and convert images from LV95 to WGS84 coordinate system')
@@ -35,4 +32,3 @@ def Provider(**kwargs):
 
 if __name__ == "__main__":
     Provider()
-
