@@ -1,11 +1,13 @@
 from osgeo import gdal, ogr
-from Utils import get_corner_coordinates
+from .Utils import get_corner_coordinates
 import os
 import subprocess
-from ImageProcessorConfig import ImageProcessorConfig
+from .ImageProcessorConfig import ImageProcessorConfig
+import json
 
 
 class ImageProcessor:
+    burn_attribute = None
     def __init__(self, config: ImageProcessorConfig):
         self.config = config
 
@@ -22,7 +24,10 @@ class ImageProcessor:
         target_image.SetGeoTransform((x_min, pixel_width, 0, y_max, 0, pixel_height))
         # todo projection not as string
         target_image.SetProjection('GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],AUTHORITY["EPSG","4326"]]')
-        gdal.RasterizeLayer(target_image, [1], jsonlayer, burn_values=[255])
+        if self.burn_attribute:
+            gdal.RasterizeLayer(target_image, [1], jsonlayer, options=["ATTRIBUTE="+self.burn_attribute])
+        else:
+            gdal.RasterizeLayer(target_image, [1], jsonlayer, burn_values=[255])
         target_image.FlushCache()
         target_image = None
         return os.path.join(self.config.output_path, file_name)
@@ -48,3 +53,21 @@ class ImageProcessor:
         image = gdal.Open(image_path)
         image_tranformation = image.GetGeoTransform()
         return (image_tranformation[1], image_tranformation[5])
+
+
+    def add_print_attribute(self, geojson_path: str):
+        with open(geojson_path, "r+") as file:
+            data = json.load(file)
+            for feature in data["features"]:
+                properties = feature["properties"]
+                if properties.get(self.config.filter.field):
+                    try:
+                        properties[self.config.filter.name] = self.config.filter.values[properties.get(self.config.filter.field)]
+                    except:
+                        properties[self.config.filter.name] = self.config.filter.values["default"]
+                else:
+                    properties[self.config.filter.name] = self.config.filter.values["empty"]
+            file.seek(0)
+            json.dump(data, file, indent=4)
+            file.truncate()
+        return self.config.filter.name

@@ -1,6 +1,6 @@
 import argparse
-from ImageProcessor import ImageProcessor
-from ImageProcessorConfig import ImageProcessorConfig
+from .ImageProcessor import ImageProcessor
+from .ImageProcessorConfig import ImageProcessorConfig
 
 
 def parse_args():
@@ -12,7 +12,7 @@ Method used to tranform data:
     `cutgeoTiffs` cut one geoTiff based on the resolution of an other geoTiff, parameter -t is needed
     `excreteGeoTiff` excrete GeoTiff based on geoJson vector data (not implemented yet)
     `getPolygonShares` get proportial size of polygon (or poligon atributes) in defined are (not implemented yet)''')
-    
+
     parser.add_argument('source', metavar='SOURCEPATH', type=str, help='path to source file')
     parser.add_argument('target', metavar='TARGETPATH', type=str, help='output path to write coputed data')
     parser.add_argument('-m', '--method', metavar='METHOD', type=str, help='select method (see main description for more information)')
@@ -27,7 +27,7 @@ def run():
 def Provider(**kwargs):
     if kwargs.get("config"):
         config = kwargs.get("config")
-        return ImageProcessorConfig(config)
+        return ImageProcessor(config)
     config = ImageProcessorConfig(output_path = kwargs.get("target"))
     provider = ImageProcessor(config)
     method = kwargs.get("method").lower()
