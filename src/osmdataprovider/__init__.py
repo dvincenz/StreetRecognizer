@@ -1,10 +1,7 @@
 import argparse
-try: 
-    from .OsmDataProvider import OsmDataProvider
-    from .OsmDataProviderConfig import OsmDataProviderConfig
-except Exception: # todo: find a better way to handle exception with relativ path if use modul as command line interface
-    from OsmDataProvider import OsmDataProvider
-    from OsmDataProviderConfig import OsmDataProviderConfig
+
+from osmdataprovider.OsmDataProvider import OsmDataProvider
+from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 def parse_args():
     parser = argparse.ArgumentParser(description='get osm data for a wgs84 geotiff or custom coordinate box')

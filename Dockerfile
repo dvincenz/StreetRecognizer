@@ -4,6 +4,9 @@ FROM tensorflow/tensorflow:latest-py3
 
 WORKDIR /usr/src/app/src
 
+# This enables imports to always find our modules defined in "src"
+ENV PYTHONPATH "/usr/src/app/src"
+
 RUN echo "alias py=python" > ~/.bash_aliases
 
 RUN apt-get update \

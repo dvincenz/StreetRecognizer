@@ -1,13 +1,15 @@
 # StreetRecognizer
+
 Proof of concept to recognize and attribute streets/roads or trails surfaces based on orthophotos and machine learning
 
 ## Environment
 
 ### Prerequisites
 
-We created a docker image for easier development, so there is no need to install all Python libraries locally. 
-- You need [Docker](https://www.docker.com/) installed on your system. 
-- You may need access to [swisstopo](https://www.swisstopo.admin.ch/) or similar images to be able to make use of our model one-to-one. 
+We created a docker image for easier development, so there is no need to install all Python libraries locally.
+
+- You need [Docker](https://www.docker.com/) installed on your system.
+- You may need access to [swisstopo](https://www.swisstopo.admin.ch/) or similar images to be able to make use of our model one-to-one.
 
 ### Build
 
@@ -38,31 +40,35 @@ docker run -v "$(Get-Location):/usr/src/app" -it street-recognizer bash
 #### Usage
 
 ```bash
-py Slicer -h
+py slicer -h
 ```
 
 #### Example
 
 ```bash
-py Slicer ../data/in/Ortho/DOP25_LV95_1091-14_2013_1_13.tif ../data/out
+py slicer ../data/in/ortho/wgs84/DOP25_LV95_1091-14_2013_1_13.tif ../data/out
 ```
 
 ### Image provider
+
 The image provider, downloads images from an azure blob storage and convert the images from LV95 to WGS84 coordinate system. You don't need to have an azure account, you can also provide the images locally.
 
 #### Usage
+
 ```bash
-py ImageProvider -h
+py imageprovider -h
 ```
 
 #### Example
+
 ```bash
-py ImageProvider 1195-22
+py imageprovider 1195-22
 ```
 
-### Example in Python 
+#### Example in Python
 
 You can use this module in python as single executor, the same way as you use it in the console
+
 ```python
 import ImageProvider
 
@@ -70,6 +76,7 @@ ImageProvider.Provider(imageNumber="1151-22", azureaccount="swisstopo")
 ```
 
 The other possibility is to use the module as object for advanced usage
+
 ```python
 import ImageProvider
 from ImageProvider import ImageProviderConfig
@@ -80,37 +87,43 @@ images.get_image("185-34")
 
 ```
 
-## Osm data provider
+### Osm data provider
+
 Provides osm data for a defined coordinate area, or for the coordinates of a geoTiff image
 
-### Usage in console
+#### Usage in console
+
 ```bash
-py OsmDataProvider -h
+py osmdataprovider -h
 ```
 
-### Example in console
+#### Example in console
+
 ```bash
-py OsmDataProvider ../data/in/osm/vector -p ../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif
+py osmdataprovider ../data/in/osm/vector -p ../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif
 ```
 
-### Example in Python
+#### Example in Python
 
 You can use this module in python as single executor, the same way as you use it in the console
+
 ```python
-import OsmDataProvider
-OsmDataProvider.Provider(target="../data/in/osm/vector", imagepath="../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif")
+import osmdataprovider
+osmdataprovider.Provider(target="../data/in/osm/vector", imagepath="../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif")
 ```
 
 The other possibility is to use the module as object for advanced usage
+
 ```python
-import OsmDataProvider
-from OsmDataProvider import OsmDataProviderConfig
+import osmdataprovider
+from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 config = OsmDataProviderConfig(output_path = "../data/in/osm/vector", buffer={})
-osmData = OsmDataProvider.Provider(config=config)
+osmData = osmdataprovider.Provider(config=config)
 osmData.export_ways_by_image('../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif')
 
 ```
 
 ## Model
+
 You can find [here](model.md) some details about the model.
