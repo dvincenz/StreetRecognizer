@@ -121,7 +121,32 @@ from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 config = OsmDataProviderConfig(output_path = "../data/in/osm/vector", buffer={})
 osmData = osmdataprovider.Provider(config=config)
 osmData.export_ways_by_image('../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif')
+```
 
+### Metadata Extractor
+
+Extract relevant metadata from Ortho-Tiles and store them in a database for easier access.
+
+#### Usage in console
+
+```bash
+py metadataextractor -h
+```
+
+#### Example in console
+
+```bash
+py metaextractor ../data/out/DOP25_LV95_1112-44_2013_1_13.json ../data/out/metadata.db
+```
+
+#### Example in Python
+
+```python
+import metadataextractor
+metadataextractor.extractor(
+    tile_data_path='../data/out/DOP25_LV95_1112-44_2013_1_13.json',
+    data_source_path='../data/out/metadata.db'
+)
 ```
 
 ## Model
