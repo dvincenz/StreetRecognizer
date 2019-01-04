@@ -29,7 +29,7 @@ def _get_osm_data(args):
 def main():
     args = _parse_args()
 
-    Image.MAX_IMAGE_PIXELS = 17500 * 12000
+    Image.MAX_IMAGE_PIXELS = 20000 * 20000
 
     # produces 294 tiles for orthophotos of size 17'500 x 12'000 px, with overlap of 20%
     config = SlicerConfig(tile_size=args.size, base_overlap_factor=args.overlap)
