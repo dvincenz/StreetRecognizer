@@ -9,9 +9,7 @@ The ImageProcessor class can modify geo refrenced images based or with geojson d
 Method used to tranform data: 
     `rasterizeGeojson` convert geojson to geotiff file, using a geoTiff (ortho photo) 
         as coordinate and resolution provider, parameter -t is needed
-    `cutgeoTiffs` cut one geoTiff based on the resolution of an other geoTiff, parameter -t is needed
-    `excreteGeoTiff` excrete GeoTiff based on geoJson vector data (not implemented yet)
-    `getPolygonShares` get proportial size of polygon (or poligon atributes) in defined are (not implemented yet)''')
+    `cutgeoTiffs` cut one geoTiff based on the resolution of an other geoTiff, parameter -t is needed''')
 
     parser.add_argument('source', metavar='SOURCEPATH', type=str, help='path to source file')
     parser.add_argument('target', metavar='TARGETPATH', type=str, help='output path to write coputed data')
@@ -45,10 +43,6 @@ def Provider(**kwargs):
         image_name = provider.cut_geo_image(kwargs.get("template"), kwargs.get("source"))
         print("done, output: " + image_name)
         return
-    if method == "excretegeotiff": 
-        print("not implemented yet, sorry")
-    if method == "getpolygonshares": 
-        print("not implemented yet, sorry")
     raise ValueError('Image path or coordinates need to be set as argument. Use -h for more information')
 
 if __name__ == "__main__":

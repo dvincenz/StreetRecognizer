@@ -1,7 +1,7 @@
 
 #%% [markdown]
 # ## global configuration
-# set image to get/tranform slice and prepair for model learning
+# get, tranform, slice and prepair for model learning
 #%%
 import os
 import subprocess
