@@ -1,12 +1,14 @@
+
 #%% [markdown]
 # ## global configuration
 # set image to get/tranform slice and prepair for model learning
 #%%
 import os
 import subprocess
-import logging
-FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
-logging.basicConfig(filename='../data/log/model1.log',level=logging.INFO, format=FORMAT)
+
+from utils.logger import get_logger
+
+logger = get_logger("model1")
 
 image_number = "1165-1"
 
@@ -19,7 +21,7 @@ from imageprovider import ImageProviderConfig
 config = ImageProviderConfig(azure_blob_account="swisstopo", output_path="../data/in/ortho/wgs84")
 images = imageprovider.Provider(config=config)
 image_names = images.get_images_names(image_number)
-logging.info("total transofrm images: " + str(len(image_names)))
+logger.info("total transofrm images: " + str(len(image_names)))
 all_images = images.get_image_as_wgs84(image_number)
 
 #%% [markdown]
@@ -35,7 +37,7 @@ for image_name in all_images:
     try:
         osm_data.export_ways_by_image('../data/in/ortho/wgs84/' + image_name)
     except Exception as e:
-        logging.error('get osm data - ' + e)
+        logger.error('get osm data - ' + e)
 #%% [markdown]
 # ## Transform osm data to raster
 
@@ -53,11 +55,11 @@ for image_name in all_images:
         processor.burn_attribute = processor.add_print_attribute(json_path)
         width, height = processor.get_pixel_width_heigh(base_image)
         json_raster = processor.get_raster_from_geojson(json_path, width, height)
-        logging.info("tranformed image " + json_raster)
+        logger.info("tranformed image " + json_raster)
         json_raster_cut = processor.cut_geo_image(base_image, json_raster)
-        logging.info("cut image " +json_raster_cut)
+        logger.info("cut image " +json_raster_cut)
     except Exception as e:
-        logging.error('osm2raster - ' + e)
+        logger.error('osm2raster - ' + e)
 
 #%% [markdown]
 # ## Slice images
@@ -74,4 +76,4 @@ for image in all_images:
         process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate() 
     except Exception as e:
-        logging.error('slicing ' + e)
+        logger.error('slicing ' + e)
