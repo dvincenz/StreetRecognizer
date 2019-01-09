@@ -4,6 +4,16 @@ Proof of concept to recognize and attribute streets/roads or trails surfaces bas
 
 ## Environment
 
+### HSR Server
+
+For executing code on the HSR server (increased performance), the following command can be used to establish an SSH connection:
+
+```bash
+ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -p 8080 root@sifs0004.infs.ch
+```
+
+*The password is intentionally not included in this documentation.*
+
 ### Prerequisites
 
 We created a docker image for easier development, so there is no need to install all Python libraries locally.
@@ -24,13 +34,13 @@ The commands below will run the docker image and mount your local workspace into
 Linux:
 
 ```bash
-docker run -v $(pwd):/usr/src/app -it street-recognizer bash
+docker run -v $(pwd):/usr/src/app -it --rm street-recognizer bash
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -v "$(Get-Location):/usr/src/app" -it street-recognizer bash
+docker run -v "$(Get-Location):/usr/src/app" -it --rm street-recognizer bash
 ```
 
 ## Development

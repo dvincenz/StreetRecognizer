@@ -13,8 +13,14 @@ RUN apt-get update \
  && apt-get --assume-yes install \
   libgdal-dev \
   gdal-bin \
+  git \
+  npm \
+  osmosis \
   python3-gdal \
  && rm -rf /var/lib/apt/lists
+
+RUN ln -s /usr/bin/nodejs /usr/bin/node \
+ && npm install -g osmtogeojson
 
 COPY requirements.txt ./
 
