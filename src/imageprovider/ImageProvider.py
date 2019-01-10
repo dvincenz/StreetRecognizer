@@ -42,6 +42,7 @@ class ImageProvider:
         for _image_name in _image_names:
             self._set_to_lv95(_image_name)
             self._convert_to_wgs84(_image_name)
+        return _image_names
 
     def _convert_to_wgs84 (self, image_name):
         path = self.config.input_url + "/" + image_name

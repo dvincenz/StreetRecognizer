@@ -1,11 +1,14 @@
 import json
 import os
+from subprocess import call
+
+from descartes import PolygonPatch
 import geojson
-from shapely.geometry import LineString, mapping
 import matplotlib.pyplot as plot
 from osgeo import gdal
 import overpass
-from descartes import PolygonPatch
+from shapely.geometry import LineString, mapping
+
 
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
@@ -36,7 +39,24 @@ class OsmDataProvider:
         coordinates = self._get_corner_coordinates(gt, ds.RasterXSize, ds.RasterYSize)
         self.export_ways_by_coordinates(coordinates[1], coordinates[2], output_file_name)
 
-    
+    def export_ways_by_surface_from_pbf(self, surface: str, output_file: str = ""):
+        if output_file == "":
+            output_file = self.config.default_output_file_name
+
+        osm_xml_file = os.path.join(self.config.output_path, os.path.splitext(output_file)[0] + ".osm")
+        osm_geojson_file = os.path.join(self.config.output_path, output_file)
+
+        print("Reading ways with surface {0}...".format(surface))
+        call([
+            "osmosis",
+            "--read-pbf", self.config.pbf_path,
+            "--tf", "accept-ways", "surface={0}".format(surface),
+            "--tf", "reject-relations",
+            "--used-node",
+            "--write-xml", osm_xml_file])
+        with open(osm_geojson_file, 'w') as file:
+                call(["osmtogeojson", osm_xml_file], stdout=file)
+
     def _get_ways(self, response: geojson.feature.FeatureCollection):
         features = response["features"]
         ways = []

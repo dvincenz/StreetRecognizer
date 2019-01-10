@@ -45,6 +45,24 @@ docker run -v "$(Get-Location):/usr/src/app" -it --rm street-recognizer bash
 
 ## Development
 
+### TrainingDataGenerator
+
+Generates images of fixed size of labeled streets.
+
+#### Usage
+
+```bash
+py TrainingDataGenerator.py -h
+```
+
+#### Example
+
+```bash
+py TrainingDataGenerator.py --pbf ../data/in/osm/switzerland_exact.osm.pbf
+```
+
+The `switzerland_exact.osm.pbf` file can be obtained from [planet.osm.ch](https://planet.osm.ch/).
+
 ### Slicer
 
 #### Usage

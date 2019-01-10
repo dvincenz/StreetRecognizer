@@ -1,7 +1,14 @@
 class OsmDataProviderConfig:
-    def __init__(self, output_path: str, buffer=None, default_output_file_name: str = "output"):
+    def __init__(self,
+            output_path: str,
+            buffer=None,
+            default_output_file_name: str = "output",
+            pbf_path: str = None):
+
         self.output_path = output_path
         self.default_output_file_name = default_output_file_name
+        self.pbf_path = pbf_path
+
         if not buffer:
             self.buffer = self._get_default_buffer()
         else: 

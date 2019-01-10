@@ -3,6 +3,15 @@ class GeoPoint:
         self.east = east
         self.north = north
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def __hash__(self):
+        return hash((self.east, self.north))
+
+    def __str__(self):
+        return '({0}E, {1}N)'.format(self.east, self.north)
+
 
 class ParametricGeoLine:
     def __init__(self, base: GeoPoint, vector: GeoPoint):
