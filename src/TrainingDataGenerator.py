@@ -128,7 +128,7 @@ def run():
                 ways[surface]['ways'].append(way)
                 break
 
-# 2) Pick 3 points along every way]
+# 2) Pick 3 points along every way
     for surface in CLASSES:
         ways[surface]['points'] = []
         for way in ways[surface]['ways']:
