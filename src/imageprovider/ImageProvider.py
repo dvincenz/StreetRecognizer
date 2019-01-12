@@ -1,6 +1,6 @@
 from os import walk
 import os
-import subprocess
+from subprocess import call
 from azure.storage.blob import BlockBlobService
 
 from imageprovider.ImageProviderConfig import ImageProviderConfig
@@ -34,7 +34,7 @@ class ImageProvider:
                 if image.find("tif") >= 0:
                     tif_image_names.append(image)
         if len(tif_image_names) == 0:
-            print("no images with number " + image_number + " were found")
+            print("no images with number {0} were found in {1}".format(image_number, self.config.input))
         return tif_image_names
 
     def get_image_as_wgs84(self, image_number):
@@ -45,23 +45,31 @@ class ImageProvider:
         return _image_names
 
     def _convert_to_wgs84 (self, image_name):
-        path = self.config.input_url + "/" + image_name
-        path_out = self.config.output_url + "/" + image_name
+        path = os.path.join(self.config.input_url, image_name)
+        path_out = os.path.join(self.config.output_url, image_name)
         if os.path.exists(path_out):
             print("file " + path_out + " already exists, skip tranformation")
             return
+
         print("convertig image " + image_name + " to WGS84, that may take some time")
-        bash_command = "gdalwarp " + path + " " + path_out + " -s_srs " + self.EPSG_LV95 + " -t_srs " + self.EPSG_WGS84
         if not os.path.exists(self.config.output_url):
-                os.makedirs(self.config.output_url)
-        process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-        output, error = process.communicate() 
-    
+            os.makedirs(self.config.output_url)
+
+        call([
+            'gdalwarp',
+            path,
+            path_out,
+            '-s_srs', self.EPSG_LV95,
+            '-t_srs', self.EPSG_WGS84
+        ])
+
     def _set_to_lv95 (self, image_name):
-        image_url = self.config.input_url + "/" + image_name
-        bash_command = "python ./utils/gdal_edit.py -a_srs "+ self.EPSG_LV95 + " " + image_url
-        process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-        output, error = process.communicate() 
+        call([
+            'python',
+            './utils/gdal_edit.py',
+            '-a_srs', self.EPSG_LV95,
+            os.path.join(self.config.input_url, image_name)
+        ])
 
     def _download(self, image_name):
         if not self.config.is_azure:
