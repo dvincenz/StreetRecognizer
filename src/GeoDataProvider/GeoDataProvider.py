@@ -1,6 +1,7 @@
 from osgeo import gdal
 
 from geoutils.Types import GeoPoint
+from geoutils.Types import GeoRect
 
 class GeoDataProvider:
     def __init__(self, geo_tiff_path: str):
@@ -9,6 +10,17 @@ class GeoDataProvider:
 
         # GDAL affine transform parameters, According to gdal documentation xoff/yoff are image left corner, a/e are pixel wight/height and b/d is rotation and is zero if image is north up.
         self._xoff, self._a, self._b, self._yoff, self._d, self._e = self.data_source.GetGeoTransform()
+        self._xsize = self.data_source.RasterXSize
+        self._ysize = self.data_source.RasterYSize
+
+    def get_pixel_size(self) -> (int, int):
+        return (self._xsize, self._ysize)
+
+    def get_bounding_rect(self) -> GeoRect:
+        return GeoRect(
+            a=self.pixel_to_geo_point(0, 0),
+            b=self.pixel_to_geo_point(self._xsize, self._ysize)
+        )
 
     def pixel_to_geo_point(self, x, y) -> GeoPoint:
         """Returns global coordinates from pixel x, y coords"""

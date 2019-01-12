@@ -43,11 +43,39 @@ Windows (PowerShell):
 docker run -v "$(Get-Location):/usr/src/app" -it --rm street-recognizer bash
 ```
 
-## Development
+## Full Process
+
+The full process encompasses acquiring ortho photos, preparing the input data, training the model, and using the model to make predictions. This process is split into multiple modules, of which some steps must be executed manually.
+
+### Acquiring Ortho Photos
+
+*See [Image Provider](#image-provider).*
+
+### Preparing Input Data
+
+First, the ortho photo metadata must be extracted into a database for easier lookup:  
+*See [Metadata Extractor](#metadata-extractor).*
+
+Then, we need to generate the training (and test) data sets:  
+*See [TrainingDataGenerator](#trainingdatagenerator).*
+
+### Training the Model
+
+*todo*
+
+### Making predictions
+
+*todo*
+
+## Modules
 
 ### TrainingDataGenerator
 
 Generates images of fixed size of labeled streets.
+
+#### Prerequisites
+
+For the TrainingDataGenerator to work properly, WGS84 Orthophotos are required. Additionally, these Orthophotos must be indexed using the `metaextractor`.
 
 #### Usage
 
@@ -58,10 +86,14 @@ py TrainingDataGenerator.py -h
 #### Example
 
 ```bash
-py TrainingDataGenerator.py --pbf ../data/in/osm/switzerland_exact.osm.pbf
+py TrainingDataGenerator.py --pbf ../data/in/osm/switzerland-exact.osm.pbf
 ```
 
-The `switzerland_exact.osm.pbf` file can be obtained from [planet.osm.ch](https://planet.osm.ch/).
+The `switzerland_exact.osm.pbf` file can be obtained from [planet.osm.ch](https://planet.osm.ch/):
+
+```bash
+wget https://planet.osm.ch/switzerland-exact.osm.pbf -O ../data/in/osm/switzerland-exact.osm.pbf
+```
 
 ### Slicer
 
