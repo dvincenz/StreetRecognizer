@@ -44,7 +44,7 @@ class ImageProvider:
         for i, _image_name in enumerate(_image_names):
             self._set_to_lv95(_image_name)
             self._convert_to_wgs84(_image_name)
-            print('Progress: {0}/{1}'.format(i, len(_image_names)))
+            print('Progress: {0}/{1}'.format(i+1, len(_image_names)))
         return _image_names
 
     def _convert_to_wgs84 (self, image_name):
