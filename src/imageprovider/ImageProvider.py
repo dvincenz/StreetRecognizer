@@ -35,13 +35,16 @@ class ImageProvider:
                     tif_image_names.append(image)
         if len(tif_image_names) == 0:
             print("no images with number {0} were found in {1}".format(image_number, self.config.input))
+
+        print('Found {0} images for image_number {1}'.format(len(tif_image_names), image_number))
         return tif_image_names
 
     def get_image_as_wgs84(self, image_number):
         _image_names = self.get_image(image_number)
-        for _image_name in _image_names:
+        for i, _image_name in enumerate(_image_names):
             self._set_to_lv95(_image_name)
             self._convert_to_wgs84(_image_name)
+            print('Progress: {0}/{1}'.format(i, len(_image_names)))
         return _image_names
 
     def _convert_to_wgs84 (self, image_name):

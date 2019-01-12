@@ -3,7 +3,6 @@ import re
 import sqlite3
 
 from geodataprovider.GeoDataProvider import GeoDataProvider
-from geoutils.Types import GeoRect
 
 class OrthoMetaExtractor:
     def __init__(self, cursor: sqlite3.Cursor):
