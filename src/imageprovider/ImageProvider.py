@@ -34,7 +34,7 @@ class ImageProvider:
                 if image.find("tif") >= 0:
                     tif_image_names.append(image)
         if len(tif_image_names) == 0:
-            print("no images with number {0} were found in {1}".format(image_number, self.config.input))
+            print("no images with number {0} were found in {1}".format(image_number, self.config.input_url))
 
         print('Found {0} images for image_number {1}'.format(len(tif_image_names), image_number))
         return tif_image_names
