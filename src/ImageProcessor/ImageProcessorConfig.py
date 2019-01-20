@@ -37,10 +37,7 @@ class ImageProcessorConfig:
         filter["construction"] = 100
         filter["service"] = 90
         filter["cycleway"] = 80
-        filter["footway"] = 70
         filter["steps"] = 60
-        filter["footway"] = 50
-        filter["path"] = 40
         filter["pedestrian"] = 30
         filter["footway"] = 20
         filter["path"] = 10

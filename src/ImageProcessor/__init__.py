@@ -1,6 +1,7 @@
 import argparse
-from .ImageProcessor import ImageProcessor
-from .ImageProcessorConfig import ImageProcessorConfig
+from imageprocessor.ImageProcessor import ImageProcessor
+from imageprocessor.ImageProcessorConfig import ImageProcessorConfig
+from geodataprovider.GeoDataProvider import GeoDataProvider
 
 
 def parse_args():
@@ -32,7 +33,9 @@ def Provider(**kwargs):
     if method == "rasterizegeojson":
         if not kwargs.get("template"):
             raise ValueError("the parameter --template (-t) is needed to set resolution of transofrmation")
-        width, height = provider.get_pixel_width_heigh(kwargs.get("template"))
+        geo_data = GeoDataProvider((kwargs.get("template"))
+        width =  geo_data.get_pixel_width()
+        height = geo_data.get_pixel_hight()
         image_name = provider.get_raster_from_geojson(kwargs.get("source"), width,  height)
         print("image created " + image_name)
         print("cutting image...")

@@ -3,7 +3,6 @@ class GeoPoint:
         self.east = east
         self.north = north
 
-
 class ParametricGeoLine:
     def __init__(self, base: GeoPoint, vector: GeoPoint):
         self.base = base

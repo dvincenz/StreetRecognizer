@@ -10,7 +10,7 @@ from utils.logger import get_logger
 
 logger = get_logger("model1")
 
-image_number = "1165-1"
+image_number = "DOP25_LV"
 
 #%% [markdown]
 # ## get images and tranform to WGS84

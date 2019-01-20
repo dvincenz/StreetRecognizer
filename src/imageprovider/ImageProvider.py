@@ -1,8 +1,10 @@
-from os import walk
+
 import os
 import subprocess
-from azure.storage.blob import BlockBlobService
 
+from azure.storage.blob import BlockBlobService
+from os import walk
+from utils.logger import get_logger
 from imageprovider.ImageProviderConfig import ImageProviderConfig
 
 
@@ -10,6 +12,7 @@ class ImageProvider:
     EPSG_LV95 = "EPSG:2056"
     EPSG_WGS84 = "EPSG:4326"
     def __init__ (self, config: ImageProviderConfig):
+        self.logger = get_logger("imageprovider")
         self.config = config
         self.all_images = []
         if self.config.is_azure:
@@ -52,7 +55,8 @@ class ImageProvider:
                 self._set_to_lv95(image_name)
                 self._convert_to_wgs84(image_name)
                 downloaded_images.append(image_name)
-            except:
+            except Exception as e:
+                self.logger("failed to convert image {0} error: {1}".format(image_name, e))
                 pass
         return downloaded_images
  

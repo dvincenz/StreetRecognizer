@@ -6,6 +6,7 @@ import matplotlib.pyplot as plot
 from osgeo import gdal
 import overpass
 from descartes import PolygonPatch
+from goedataprovider import GeoDataProvider
 
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
@@ -33,8 +34,8 @@ class OsmDataProvider:
         ds = gdal.Open(image_path)
         output_file_name = os.path.basename(os.path.splitext(image_path)[0])
         gt = ds.GetGeoTransform()
-        coordinates = self._get_corner_coordinates(gt, ds.RasterXSize, ds.RasterYSize)
-        self.export_ways_by_coordinates(coordinates[1], coordinates[2], output_file_name)
+        geo_data_provider = GeoDataProvider(image_path)
+        self.export_ways_by_coordinates(geo_data_provider.get_lower_left_coordinates, geo_data_provider.get_upper_right_coordinates, output_file_name)
 
     
     def _get_ways(self, response: geojson.feature.FeatureCollection):
@@ -54,13 +55,6 @@ class OsmDataProvider:
         with open(output_file, 'w') as f:
             f.write(json.dumps(data, indent=4, sort_keys=True))
         print("exported " + output_file)
-
-    def _get_corner_coordinates(self, transformation: [], cols: int, rows: int):
-        upper_left = [transformation[0], transformation[3]]
-        lower_left = [transformation[0],transformation[3] + (transformation[5]*rows)]
-        upper_right = [transformation[0] + (transformation[1]*cols), transformation[3]]
-        lower_right = [transformation[0] + (transformation[1]*cols), transformation[3] + (transformation[5]*rows)]
-        return [upper_left, lower_left, upper_right, lower_right]
 
     def _tranform_ways_to_polygons(self, lines):
         for way in lines:

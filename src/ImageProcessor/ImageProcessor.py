@@ -1,9 +1,10 @@
-from osgeo import gdal, ogr
-from .Utils import get_corner_coordinates
 import os
-import subprocess
-from .ImageProcessorConfig import ImageProcessorConfig
 import json
+import subprocess
+
+from osgeo import gdal, ogr
+from imageprocessor.ImageProcessorConfig import ImageProcessorConfig
+from geodataprovider.GeoDataProvider import GeoDataProvider
 
 
 class ImageProcessor:
@@ -35,26 +36,21 @@ class ImageProcessor:
 
 
     def cut_geo_image(self, base_image_path: str, to_cut_image_path: str):
-        coordinates = get_corner_coordinates(base_image_path)
         file_name = os.path.splitext(os.path.basename(base_image_path))[0] + "_cut_raster.tif"
+        lower_left = GeoDataProvider(base_image_path)
+        upper_right = GeoDataProvider(base_image_path)
         # todo may use python wrapper and not command line interface
         bash_command = "gdalwarp -te {0} {1} {2} {3} {4} {5}".format(
-                coordinates[1][0], 
-                coordinates[1][1], 
-                coordinates[3][0], 
-                coordinates[0][1],
+                lower_left.east, 
+                lower_left.north, 
+                upper_right.east, 
+                upper_right.north,
                 to_cut_image_path,
                 os.path.join(self.config.output_path, file_name))
         process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate() 
         return os.path.join(self.config.output_path, file_name)
             
-    def get_pixel_width_heigh(self, image_path: str):
-        image = gdal.Open(image_path)
-        image_tranformation = image.GetGeoTransform()
-        return (image_tranformation[1], image_tranformation[5])
-
-
     def add_print_attribute(self, geojson_path: str):
         with open(geojson_path, "r+") as file:
             data = json.load(file)
