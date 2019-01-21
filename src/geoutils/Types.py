@@ -94,7 +94,7 @@ class GeoLines:
                 temp_length += line.length
                 if temp_length > random_number:
                     point = line.interpolate(random.uniform(0, line.length))
-                    random_points.append(GeoPoint(point.y, point.x))
+                    random_points.append(GeoPoint(point.x, point.y))
                     break
         return random_points
 
