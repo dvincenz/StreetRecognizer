@@ -107,7 +107,7 @@ def run():
     else:
         print("--pbf not provided; skipping OSM export")
 
-# 1) Randomly select 2'000 ways among all labeled ways in Switzerland
+# 1) Randomly select points among all labeled ways in Switzerland
     print('Selecting sample ways among all labeled ways...')
 
     ways = {}
@@ -131,17 +131,7 @@ def run():
         geo_lines = GeoLines(line_strings)
         ways[surface]['points'] = geo_lines.random_points(args['sample_number'])
 
-# # 2) Pick 3 points along every way
-#     print('Picking sample points along selected ways...')
-
-#     for surface in CLASSES:
-#         ways[surface]['points'] = []
-#         for way in ways[surface]['ways']:
-#             # TODO: Select more than one point per way
-#             coords = way.geometry.coordinates
-#             ways[surface]['points'].append(coords[min(3, len(coords)-1)])
-
-# 3) Take a sample image at the selected points
+# 2) Take a sample image at the selected points
     print('Taking sample image for every selected point...')
 
     Image.MAX_IMAGE_PIXELS = 20000 * 20000
@@ -164,7 +154,7 @@ def run():
     conn.commit()
     conn.close()
 
-# 4) Store the images in labeled directories
+# 3) Store the images in labeled directories
     print('Storing sample images in output directory ({0})...'.format(args['output']))
 
     for surface in CLASSES:
