@@ -154,7 +154,7 @@ def run():
         for point in ways[surface]['points']:
             try:
                 sample = _get_sample_image(
-                    point=GeoPoint(east=point.north, north=point.east),
+                    point=point,
                     size=args['sample_size'],
                     cursor=cursor)
                 ways[surface]['samples'].append(sample)
