@@ -11,6 +11,7 @@ def parse_args():
     parser.add_argument('-o', '--outputpath', metavar='OUTPUTPATH', type=str, help='overwrite output path')
     parser.add_argument('-aa', '--azureaccount', metavar='AZUREACCOUNT', type=str, help='set azure account, if not only discover local saved images')
     parser.add_argument('-ab', '--azureblob', metavar='AZUREBLOB', type=str, help='set azure blob name, only used if azure is in use')
+    parser.add_argument('--always-download', action='store_true', help='download files from azure, even if the converted image already exists')
 
     return vars(parser.parse_args())
 
@@ -28,7 +29,7 @@ def Provider(**kwargs):
         azure_blob_name =  kwargs.get("azureblob"),
         azure_blob_account = kwargs.get("azureaccount"))
     image_provider = ImageProvider(config)
-    image_provider.get_image_as_wgs84(kwargs.get("imageNumber"))
+    image_provider.get_image_as_wgs84(kwargs.get("imageNumber"), always_download=kwargs.get('always_download'))
 
 if __name__ == "__main__":
     Provider()

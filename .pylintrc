@@ -139,7 +139,9 @@ disable=print-statement,
         xreadlines-attribute,
         deprecated-sys-function,
         exception-escape,
-        comprehension-escape
+        comprehension-escape,
+        E0401, # Cannot resolve import (irrelevant IDE error, as we execute in docker)
+        C0301 # Line length too long
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -269,7 +271,7 @@ method-naming-style=snake_case
 #method-rgx=
 
 # Naming style matching correct module names.
-module-naming-style=PascalCase
+module-naming-style=any
 
 # Regular expression matching correct module names. Overrides module-naming-
 # style.

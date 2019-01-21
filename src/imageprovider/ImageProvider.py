@@ -1,6 +1,7 @@
+import re
 from os import walk
 import os
-import subprocess
+from subprocess import call
 from azure.storage.blob import BlockBlobService
 
 from imageprovider.ImageProviderConfig import ImageProviderConfig
@@ -24,43 +25,78 @@ class ImageProvider:
             self.all_images = files
 
     def get_image(self, image_number: str):
-        tif_image_names = []
-        for image in self.all_images:
-            if image.find(image_number) >= 0:
-                if (os.path.exists(self.config.input_url + "/" + image)) and (self.config.is_azure):
-                    print("skip download file " + image + " because file already exists")
-                else:
-                    self._download(image)
-                if image.find("tif") >= 0:
-                    tif_image_names.append(image)
-        if len(tif_image_names) == 0:
-            print("no images with number " + image_number + " were found")
+        tif_image_names = self._get_image_names_by_number(image_number)
+        for image in tif_image_names:
+            self._get_image_exact(image)
+
         return tif_image_names
 
-    def get_image_as_wgs84(self, image_number):
-        _image_names = self.get_image(image_number)
-        for _image_name in _image_names:
+    def get_image_as_wgs84(self, image_number, always_download: bool = False):
+        if always_download:
+            image_names = self.get_image(image_number)
+        else:
+            image_names = []
+            for image_name in self._get_image_names_by_number(image_number):
+                out_path = os.path.join(self.config.output_url, image_name)
+                if not os.path.exists(out_path):
+                    self._get_image_exact(image_name)
+                    image_names.append(image_name)
+                else:
+                    print('file {0} already exists, skip transformation'.format(out_path))
+
+        if image_names:
+            print('Found {0} images to convert...'.format(len(image_names)))
+        else:
+            print('No images found to convert')
+            return []
+
+        for i, _image_name in enumerate(image_names):
             self._set_to_lv95(_image_name)
             self._convert_to_wgs84(_image_name)
+            print('Progress: {0}/{1}'.format(i+1, len(image_names)))
+        return image_names
 
-    def _convert_to_wgs84 (self, image_name):
-        path = self.config.input_url + "/" + image_name
-        path_out = self.config.output_url + "/" + image_name
+    def _get_image_names_by_number(self, image_number: str):
+        images = []
+        for image in self.all_images:
+            if self._image_number_matches(image, image_number):
+                images.append(image)
+
+        print('Found {0} images for image_number {1}'.format(len(images), image_number))
+        return images
+
+    def _get_image_exact(self, image_name: str):
+        if (os.path.exists(self.config.input_url + "/" + image_name)) and (self.config.is_azure):
+            print("skip download file " + image_name + " because file already exists")
+        else:
+            self._download(image_name)
+
+    def _convert_to_wgs84(self, image_name):
+        path = os.path.join(self.config.input_url, image_name)
+        path_out = os.path.join(self.config.output_url, image_name)
         if os.path.exists(path_out):
             print("file " + path_out + " already exists, skip tranformation")
             return
+
         print("convertig image " + image_name + " to WGS84, that may take some time")
-        bash_command = "gdalwarp " + path + " " + path_out + " -s_srs " + self.EPSG_LV95 + " -t_srs " + self.EPSG_WGS84
         if not os.path.exists(self.config.output_url):
-                os.makedirs(self.config.output_url)
-        process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-        output, error = process.communicate() 
-    
+            os.makedirs(self.config.output_url)
+
+        call([
+            'gdalwarp',
+            path,
+            path_out,
+            '-s_srs', self.EPSG_LV95,
+            '-t_srs', self.EPSG_WGS84
+        ])
+
     def _set_to_lv95 (self, image_name):
-        image_url = self.config.input_url + "/" + image_name
-        bash_command = "python ./utils/gdal_edit.py -a_srs "+ self.EPSG_LV95 + " " + image_url
-        process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-        output, error = process.communicate() 
+        call([
+            'python',
+            './utils/gdal_edit.py',
+            '-a_srs', self.EPSG_LV95,
+            os.path.join(self.config.input_url, image_name)
+        ])
 
     def _download(self, image_name):
         if not self.config.is_azure:
@@ -68,5 +104,13 @@ class ImageProvider:
         path = self.config.input_url
         print("downloading " + image_name + " to " + path + "/" + image_name)
         if not os.path.exists(path):
-                os.makedirs(path)
+            os.makedirs(path)
         self.block_blob_service.get_blob_to_path(self.config.azure_blob_name, image_name, path + "/" + image_name)
+
+    @staticmethod
+    def _image_number_matches(ortho_file_name: str, image_number: str) -> bool:
+        match = re.match(r'DOP25_LV95_(\d{4}-\d{2})_\d+_\d+_\d+\.tiff?', ortho_file_name)
+        if match:
+            return match.group(1).find(image_number) > -1
+
+        return False

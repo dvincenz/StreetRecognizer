@@ -4,6 +4,16 @@ Proof of concept to recognize and attribute streets/roads or trails surfaces bas
 
 ## Environment
 
+### HSR Server
+
+For executing code on the HSR server (increased performance), the following command can be used to establish an SSH connection:
+
+```bash
+ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -p 8080 root@sifs0004.infs.ch
+```
+
+*The password is intentionally not included in this documentation.*
+
 ### Prerequisites
 
 We created a docker image for easier development, so there is no need to install all Python libraries locally.
@@ -24,16 +34,66 @@ The commands below will run the docker image and mount your local workspace into
 Linux:
 
 ```bash
-docker run -v $(pwd):/usr/src/app -it street-recognizer bash
+docker run -v $(pwd):/usr/src/app -it --rm street-recognizer bash
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -v "$(Get-Location):/usr/src/app" -it street-recognizer bash
+docker run -v "$(Get-Location):/usr/src/app" -it --rm street-recognizer bash
 ```
 
-## Development
+## Full Process
+
+The full process encompasses acquiring ortho photos, preparing the input data, training the model, and using the model to make predictions. This process is split into multiple modules, of which some steps must be executed manually.
+
+### Acquiring Ortho Photos
+
+*See [Image Provider](#image-provider).*
+
+### Preparing Input Data
+
+First, the ortho photo metadata must be extracted into a database for easier lookup:  
+*See [Metadata Extractor](#metadata-extractor).*
+
+Then, we need to generate the training (and test) data sets:  
+*See [TrainingDataGenerator](#trainingdatagenerator).*
+
+### Training the Model
+
+*todo*
+
+### Making predictions
+
+*todo*
+
+## Modules
+
+### TrainingDataGenerator
+
+Generates images of fixed size of labeled streets.
+
+#### Prerequisites
+
+For the TrainingDataGenerator to work properly, WGS84 Orthophotos are required. Additionally, these Orthophotos must be indexed using the `metaextractor`.
+
+#### Usage
+
+```bash
+py TrainingDataGenerator.py -h
+```
+
+#### Example
+
+```bash
+py TrainingDataGenerator.py --pbf ../data/in/osm/switzerland-exact.osm.pbf
+```
+
+The `switzerland_exact.osm.pbf` file can be obtained from [planet.osm.ch](https://planet.osm.ch/):
+
+```bash
+wget https://planet.osm.ch/switzerland-exact.osm.pbf -O ../data/in/osm/switzerland-exact.osm.pbf
+```
 
 ### Slicer
 
@@ -130,7 +190,7 @@ Extract relevant metadata from Ortho-Tiles and store them in a database for easi
 #### Usage in console
 
 ```bash
-py metadataextractor -h
+py metaextractor -h
 ```
 
 #### Example in console
@@ -142,8 +202,8 @@ py metaextractor ../data/out/DOP25_LV95_1112-44_2013_1_13.json ../data/out/metad
 #### Example in Python
 
 ```python
-import metadataextractor
-metadataextractor.extractor(
+import metaextractor
+metaextractor.extractor(
     tile_data_path='../data/out/DOP25_LV95_1112-44_2013_1_13.json',
     data_source_path='../data/out/metadata.db'
 )

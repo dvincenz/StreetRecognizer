@@ -1,3 +1,5 @@
+import os
+
 class ImageProviderConfig:
     def __init__(self, 
             azure_blob_name: str = None , 
@@ -16,6 +18,9 @@ class ImageProviderConfig:
             self.is_azure = True
         if not azure_blob_key and azure_blob_account and azure_blob_key_file:
             self.set_azure_key_from_config(azure_blob_key_file)
+
+        if not os.path.isdir(self.input_url):
+            raise ValueError('input path {0} not found'.format(self.input_url))
 
     def set_azure_key_from_config(self, config_file: str):
         self.azure_blob_key = open(config_file, "r").read()

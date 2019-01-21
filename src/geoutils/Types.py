@@ -1,7 +1,19 @@
+from shapely.geometry import LineString
+import random
+
 class GeoPoint:
     def __init__(self, east: float, north: float):
         self.east = east
         self.north = north
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def __hash__(self):
+        return hash((self.east, self.north))
+
+    def __str__(self):
+        return '({0}E, {1}N)'.format(self.east, self.north)
 
 
 class ParametricGeoLine:
@@ -60,3 +72,29 @@ class GeoRect:
             GeoLineSegment(GeoPoint(east=self.a.east, north=self.b.north), self.b),
             GeoLineSegment(GeoPoint(east=self.b.east, north=self.a.north), self.b)
         ]
+
+
+class GeoLines:
+    def __init__(self, line_strings):
+        self.line_strings = line_strings
+        self.lines = []
+        self.total_length = 0
+        for way in self.line_strings:
+            line = LineString(way["geometry"]["coordinates"])
+            self.total_length += line.length
+            self.lines.append(line)
+        self.lines.sort(key=lambda x: x.length, reverse=True)
+
+    def random_points(self, number):
+        random_points = []
+        for i in range(0, number):
+            random_number = random.uniform(0,self.total_length)
+            temp_length = 0
+            for line in self.lines:
+                temp_length += line.length
+                if temp_length > random_number:
+                    point = line.interpolate(random.uniform(0, line.length))
+                    random_points.append(GeoPoint(point.x, point.y))
+                    break
+        return random_points
+
