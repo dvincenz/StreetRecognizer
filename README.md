@@ -190,7 +190,7 @@ Extract relevant metadata from Ortho-Tiles and store them in a database for easi
 #### Usage in console
 
 ```bash
-py metadataextractor -h
+py metaextractor -h
 ```
 
 #### Example in console
@@ -202,8 +202,8 @@ py metaextractor ../data/out/DOP25_LV95_1112-44_2013_1_13.json ../data/out/metad
 #### Example in Python
 
 ```python
-import metadataextractor
-metadataextractor.extractor(
+import metaextractor
+metaextractor.extractor(
     tile_data_path='../data/out/DOP25_LV95_1112-44_2013_1_13.json',
     data_source_path='../data/out/metadata.db'
 )

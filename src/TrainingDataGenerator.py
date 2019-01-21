@@ -12,7 +12,7 @@ import geojson
 from PIL import Image
 
 from geodataprovider.GeoDataProvider import GeoDataProvider
-from geoutils.Types import GeoPoint
+from geoutils.Types import GeoPoint, GeoLines
 from osmdataprovider.OsmDataProvider import OsmDataProvider
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
@@ -20,6 +20,7 @@ from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 # labeled surfaces are: asphalt, gravel, paved, ground, unpaved, grass, dirt, concrete, compacted, fine_gravel
 # fine_gravel has 2'424 labeled highways, therefor taking 3 random samples from every highway suffices to
 # obtain 6k images in total for every class.
+
 
 CLASSES = [
     'asphalt',
@@ -42,6 +43,7 @@ def _parse_args():
     parser.add_argument('--num-threads', type=int, help='maximum number of threads to run concurrently (default: unlimited)')
     parser.add_argument('-p', '--pbf', type=str, help='OSM PBF extract used as input, obtained from e.g. https://planet.osm.ch/')
     parser.add_argument('--sample-size', type=int, default=32, help='size in pixels of the sample images taken at each point (default: 32)')
+    parser.add_argument('--sample-number', type=int, default=2000, help='number of random images per category (default 2000)')
     return vars(parser.parse_args())
 
 def _export_labeled_ways(provider: OsmDataProvider, num_threads: int = len(CLASSES)):
@@ -99,7 +101,7 @@ def run():
         print("Reading labeled ways from Switzerland extract, this might take several minutes...")
         _export_labeled_ways(
             provider=OsmDataProvider(config=OsmDataProviderConfig(
-                pbf_path=args['pbf_input'],
+                pbf_path=args['pbf'],
                 output_path=args['osm_path'])),
             num_threads=args['num_threads'])
     else:
@@ -125,17 +127,19 @@ def run():
             if isinstance(way.geometry, geojson.LineString):
                 line_strings.append(way)
 
-        ways[surface]['ways'] = random.sample(line_strings, 3)
+        ways[surface]['ways'] = line_strings
+        geo_lines = GeoLines(line_strings)
+        ways[surface]['points'] = geo_lines.random_points(args['sample_number'])
 
-# 2) Pick 3 points along every way
-    print('Picking sample points along selected ways...')
+# # 2) Pick 3 points along every way
+#     print('Picking sample points along selected ways...')
 
-    for surface in CLASSES:
-        ways[surface]['points'] = []
-        for way in ways[surface]['ways']:
-            # TODO: Select more than one point per way
-            coords = way.geometry.coordinates
-            ways[surface]['points'].append(coords[min(3, len(coords)-1)])
+#     for surface in CLASSES:
+#         ways[surface]['points'] = []
+#         for way in ways[surface]['ways']:
+#             # TODO: Select more than one point per way
+#             coords = way.geometry.coordinates
+#             ways[surface]['points'].append(coords[min(3, len(coords)-1)])
 
 # 3) Take a sample image at the selected points
     print('Taking sample image for every selected point...')
@@ -150,7 +154,7 @@ def run():
         for point in ways[surface]['points']:
             try:
                 sample = _get_sample_image(
-                    point=GeoPoint(east=point[0], north=point[1]),
+                    point=GeoPoint(east=point.north, north=point.east),
                     size=args['sample_size'],
                     cursor=cursor)
                 ways[surface]['samples'].append(sample)
