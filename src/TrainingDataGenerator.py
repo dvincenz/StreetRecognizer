@@ -44,6 +44,7 @@ def _parse_args():
     parser.add_argument('-p', '--pbf', type=str, help='OSM PBF extract used as input, obtained from e.g. https://planet.osm.ch/')
     parser.add_argument('--sample-size', type=int, default=32, help='size in pixels of the sample images taken at each point (default: 32)')
     parser.add_argument('--sample-number', type=int, default=2000, help='number of random images per category (default 2000)')
+    parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose output')
     return vars(parser.parse_args())
 
 def _export_labeled_ways(provider: OsmDataProvider, num_threads: int = len(CLASSES)):
@@ -60,7 +61,7 @@ def _export_labeled_ways(provider: OsmDataProvider, num_threads: int = len(CLASS
 
     print("Done!")
 
-def _find_ortho_photo(cursor: sqlite3.Cursor, point: GeoPoint) -> str:
+def _find_ortho_photo(cursor: sqlite3.Cursor, point: GeoPoint, verbose: bool) -> str:
     result = cursor.execute('''
         SELECT file_path FROM orthos
         WHERE east_min < ?
@@ -72,12 +73,14 @@ def _find_ortho_photo(cursor: sqlite3.Cursor, point: GeoPoint) -> str:
     if result is None:
         return None
 
-    print('Point {0} => Ortho {1}'.format(point, result[0]))
+    if verbose:
+        print('Point {0} => Ortho {1}'.format(point, result[0]))
+
     return result[0]
 
 
-def _get_sample_image(point: GeoPoint, size: int, cursor: sqlite3.Cursor) -> Image:
-    geo_tiff_path = _find_ortho_photo(cursor=cursor, point=point)
+def _get_sample_image(point: GeoPoint, size: int, cursor: sqlite3.Cursor, verbose: bool = False) -> Image:
+    geo_tiff_path = _find_ortho_photo(cursor=cursor, point=point, verbose=verbose)
     if geo_tiff_path is None:
         raise ValueError('Could not find an Orthophoto for {0}'.format(point))
 
@@ -112,6 +115,8 @@ def run():
 
     ways = {}
     for surface in CLASSES:
+        print('\tProcessing {0}...'.format(surface))
+
         with open(
                 file=os.path.join(
                     args['osm_path'],
@@ -139,15 +144,24 @@ def run():
     conn = sqlite3.connect(args['meta_data'])
     cursor = conn.cursor()
 
+    samples = 0
     for surface in CLASSES:
+        print('\tProcessing {0}...'.format(surface))
+
         ways[surface]['samples'] = []
         for point in ways[surface]['points']:
             try:
                 sample = _get_sample_image(
                     point=point,
                     size=args['sample_size'],
-                    cursor=cursor)
+                    cursor=cursor,
+                    verbose=args['verbose'])
                 ways[surface]['samples'].append(sample)
+
+                samples += 1
+                if samples % 10 == 0:
+                    print('\tProgress: {0}/{1}'.format(samples, len(CLASSES) * args['sample_number']))
+
             except ValueError as ex:
                 print('Could not create sample image for surface {0}:\n\t{1}'.format(surface, ex))
 
