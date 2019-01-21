@@ -43,7 +43,7 @@ def _parse_args():
     parser.add_argument('--num-threads', type=int, help='maximum number of threads to run concurrently (default: unlimited)')
     parser.add_argument('-p', '--pbf', type=str, help='OSM PBF extract used as input, obtained from e.g. https://planet.osm.ch/')
     parser.add_argument('--sample-size', type=int, default=32, help='size in pixels of the sample images taken at each point (default: 32)')
-    parser.add_argument('--sample-number', type=int, default=2000, help='number of random images per category (default 2000)')
+    parser.add_argument('--sample-number', type=int, default=6000, help='number of random images per category (default 6000)')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose output')
     return vars(parser.parse_args())
 
