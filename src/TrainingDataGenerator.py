@@ -15,6 +15,7 @@ from geodataprovider.GeoDataProvider import GeoDataProvider
 from geoutils.Types import GeoPoint, GeoLines
 from osmdataprovider.OsmDataProvider import OsmDataProvider
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
+from utils.AsyncWriter import AsyncWriter
 
 # According to http://taginfo.openstreetmap.ch/keys/surface#values, the 10 most
 # labeled surfaces are: asphalt, gravel, paved, ground, unpaved, grass, dirt, concrete, compacted, fine_gravel
@@ -23,15 +24,15 @@ from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 
 CLASSES = [
-    'asphalt',
-    'gravel',
-    'paved',
-    'ground',
-    'unpaved',
-    'grass',
-    'dirt',
-    'concrete',
-    'compacted',
+    # 'asphalt',
+    # 'gravel',
+    # 'paved',
+    # 'ground',
+    # 'unpaved',
+    # 'grass',
+    # 'dirt',
+    # 'concrete',
+    # 'compacted',
     'fine_gravel'
 ]
 
@@ -145,10 +146,12 @@ def run():
     cursor = conn.cursor()
 
     samples = 0
+    writer = AsyncWriter()
     for surface in CLASSES:
         print('\tProcessing {0}...'.format(surface))
 
         ways[surface]['samples'] = []
+        imageNumber = 0
         for point in ways[surface]['points']:
             try:
                 sample = _get_sample_image(
@@ -156,25 +159,26 @@ def run():
                     size=args['sample_size'],
                     cursor=cursor,
                     verbose=args['verbose'])
-                ways[surface]['samples'].append(sample)
-
+                # ways[surface]['samples'].append(sample)
+                writer.write(sample, os.path.join(args['output'], surface, '{0:04d}.png'.format(imageNumber)))
                 samples += 1
                 if samples % 10 == 0:
                     print('\tProgress: {0}/{1}'.format(samples, len(CLASSES) * args['sample_number']))
-
+                imageNumber += 1
             except ValueError as ex:
                 print('Could not create sample image for surface {0}:\n\t{1}'.format(surface, ex))
 
     conn.commit()
     conn.close()
+    writer.close()
 
 # 3) Store the images in labeled directories
-    print('Storing sample images in output directory ({0})...'.format(args['output']))
+    # print('Storing sample images in output directory ({0})...'.format(args['output']))
 
-    for surface in CLASSES:
-        os.makedirs(os.path.join(args['output'], surface), exist_ok=True)
-        for i, sample in enumerate(ways[surface]['samples']):
-            sample.save(os.path.join(args['output'], surface, '{0:04d}.png'.format(i)), 'PNG')
+    # for surface in CLASSES:
+    #     os.makedirs(os.path.join(args['output'], surface), exist_ok=True)
+    #     for i, sample in enumerate(ways[surface]['samples']):
+    #         sample.save(os.path.join(args['output'], surface, '{0:04d}.png'.format(i)), 'PNG')
 
 if __name__ == "__main__":
     run()
