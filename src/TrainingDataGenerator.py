@@ -24,15 +24,15 @@ from utils.AsyncWriter import AsyncWriter
 
 
 CLASSES = [
-    # 'asphalt',
-    # 'gravel',
-    # 'paved',
-    # 'ground',
-    # 'unpaved',
-    # 'grass',
-    # 'dirt',
-    # 'concrete',
-    # 'compacted',
+    'asphalt',
+    'gravel',
+    'paved',
+    'ground',
+    'unpaved',
+    'grass',
+    'dirt',
+    'concrete',
+    'compacted',
     'fine_gravel'
 ]
 
@@ -151,7 +151,7 @@ def run():
         print('\tProcessing {0}...'.format(surface))
 
         ways[surface]['samples'] = []
-        imageNumber = 0
+        image_number = 0
         for point in ways[surface]['points']:
             try:
                 sample = _get_sample_image(
@@ -160,11 +160,11 @@ def run():
                     cursor=cursor,
                     verbose=args['verbose'])
                 # ways[surface]['samples'].append(sample)
-                writer.write(sample, os.path.join(args['output'], surface, '{0:04d}.png'.format(imageNumber)))
+                writer.write(sample, os.path.join(args['output'], surface, '{0:04d}.png'.format(image_number)))
                 samples += 1
+                image_number += 1
                 if samples % 10 == 0:
                     print('\tProgress: {0}/{1}'.format(samples, len(CLASSES) * args['sample_number']))
-                imageNumber += 1
             except ValueError as ex:
                 print('Could not create sample image for surface {0}:\n\t{1}'.format(surface, ex))
 

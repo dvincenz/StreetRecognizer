@@ -1,12 +1,17 @@
 import queue
 import threading
 import time 
+import os
+
+from PIL import Image
+
+
 
 
 class FileToWrite:
-    def __init__(self, path, file):
+    def __init__(self, path, file: Image):
         self.path = path
-        self.content = file
+        self.file = file
 
 class AsyncWriter:
     def __init__(self):
@@ -15,7 +20,7 @@ class AsyncWriter:
         self.worker = threading.Thread(target=self.worker)
         self.worker.start()
 
-    def write(self, path: str, file):
+    def write(self, file,  path: str,):
         self.queue.put(FileToWrite(path, file))
 
     def worker(self):
@@ -31,5 +36,7 @@ class AsyncWriter:
         self.worker.join()
 
     def write_file(self, item: FileToWrite):
-        item.file.save(item.path)
+        if not os.path.exists(os.path.dirname(item.path)):
+            os.makedirs(os.path.dirname(item.path))
+        item.file.save(item.path, 'PNG')
 
