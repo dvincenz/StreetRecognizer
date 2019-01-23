@@ -20,6 +20,7 @@ class ModelMicro10:
     BATCH_SIZE = 32
     NUM_CLASSES = 10
     EPOCHS = 100
+    STEPS_PER_EPOCH = 100
     DATA_AUGMENTATION = True
 
     def __init__(self, model_path: str):
@@ -187,7 +188,7 @@ class ModelMicro10:
             model.fit_generator(datagen.flow(x_train, y_train,
                                             batch_size=self.BATCH_SIZE),
                                 epochs=self.EPOCHS,
-                                steps_per_epoch=50,
+                                steps_per_epoch=self.STEPS_PER_EPOCH,
                                 validation_data=(x_test, y_test),
                                 workers=4)
 

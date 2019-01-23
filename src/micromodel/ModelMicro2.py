@@ -17,9 +17,18 @@ from PIL import Image
 from micromodel.Types import DataPoint
 
 class ModelMicro2:
+    CLASSES = [
+        'asphalt',
+        'concrete',
+        'paved',
+        'dirt',
+        'grass',
+        'unpaved'
+    ]
     BATCH_SIZE = 32
     NUM_CLASSES = 2
     EPOCHS = 100
+    STEPS_PER_EPOCH = 100
     DATA_AUGMENTATION = True
 
     def __init__(self, model_path: str):
@@ -76,6 +85,10 @@ class ModelMicro2:
             dir_full = os.path.join(micro_image_dir, surface)
             if not os.path.isdir(dir_full):
                 print('\t{0} is not a directory, skipping...'.format(dir_full))
+                continue
+
+            if surface not in self.CLASSES:
+                print('\t{0} is not in selected classes, skipping...'.format(surface))
                 continue
 
             for sample in os.listdir(dir_full):
@@ -187,7 +200,7 @@ class ModelMicro2:
             model.fit_generator(datagen.flow(x_train, y_train,
                                             batch_size=self.BATCH_SIZE),
                                 epochs=self.EPOCHS,
-                                steps_per_epoch=50,
+                                steps_per_epoch=self.STEPS_PER_EPOCH,
                                 validation_data=(x_test, y_test),
                                 workers=4)
 
