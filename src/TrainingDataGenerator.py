@@ -85,9 +85,8 @@ def run():
     print('Selecting sample ways among all labeled ways...')
 
     ways = {}
-    for surface in CLASSES:
+    def _random_images(surface: str):
         print('\tProcessing {0}...'.format(surface))
-
         with open(
                 file=os.path.join(
                     args['osm_path'],
@@ -107,12 +106,16 @@ def run():
             out_path=os.path.join(args['output'], surface),
             metadata=args["meta_data"],
             verbose=args['verbose'],
-            is_seed_fix=True
+            is_seed_fix=False
         ) as r:
             r.get_random_images(
                 number=args["sample_number"], 
                 line_strings=line_strings
             )
+        return surface
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for future in executor.map(_random_images, CLASSES):
+            print("done {0}".format(future))
 
     
 if __name__ == "__main__":

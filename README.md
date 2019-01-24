@@ -21,6 +21,13 @@ We created a docker image for easier development, so there is no need to install
 - You need [Docker](https://www.docker.com/) installed on your system.
 - You may need access to [swisstopo](https://www.swisstopo.admin.ch/) or similar images to be able to make use of our model one-to-one.
 
+To run long during tasks in the background you can use following syntax
+
+```bash
+chmod -x TrainingDataGenerator.py
+nohup python3 ./TrainingDataGenerator.py &
+```
+
 ### Build
 
 ```bash

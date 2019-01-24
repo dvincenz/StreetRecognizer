@@ -21,6 +21,7 @@ class RandomImageProvider:
         self.writer = AsyncWriter()
         if is_seed_fix:
             random.seed(2)
+        self.is_seed_fix = is_seed_fix
     def __enter__(self):
         return self
 
@@ -29,22 +30,31 @@ class RandomImageProvider:
         self.conn.close()
         self.writer.close()
 
-    def get_random_images(self, number: int, line_strings):
+    def get_random_images(self, number: int, line_strings, overwrite=False):
         geo_lines = GeoLines(line_strings)
-        points = geo_lines.random_points(number)
-        
         Image.MAX_IMAGE_PIXELS = 20000 * 20000
-        with progressbar.ProgressBar(max_value=10) as bar:
-            image_number = 0
-            for point in points:
+        widgets=[
+            ' [', os.path.basename(os.path.normpath(self.out_path)) , '] ',
+            progressbar.Percentage(), ' ',
+            progressbar.SimpleProgress(), ' ',
+            progressbar.Bar(),
+            progressbar.Timer(), ' ',
+            progressbar.ETA()
+        ]
+        image_number = 0
+        if not overwrite:
+            image_number = sum([len(files) for r, d, files in os.walk(self.out_path)])
+        if self.is_seed_fix and image_number > 0:
+            print("you set flag is_seed_fix = false, override = false and you already have some images in your dir. The new images will may be the same images like you already have, please dubblecheck if it's what you want.")
+        with progressbar.ProgressBar(max_value=number, widgets=widgets) as bar:
+            for image_number in range(image_number, number):
                 try:
-                    sample = self._get_sample_image(point)
+                    sample = self._get_sample_image(geo_lines.random_points(1)[0])
                     self.writer.write(sample, os.path.join(self.out_path, '{0:04d}.png'.format(image_number)))
                     image_number += 1
                     bar.update(image_number)
                 except ValueError as ex:
                     print('Could not create sample image:\n\t{0}'.format(ex))
-    
 
     def _find_ortho_photo(self, point: GeoPoint) -> str:
         result = self.cursor.execute('''
