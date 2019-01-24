@@ -34,13 +34,13 @@ The commands below will run the docker image and mount your local workspace into
 Linux:
 
 ```bash
-docker run -v $(pwd):/usr/src/app -it --rm street-recognizer bash
+docker run -v $(pwd):/usr/src/app --name street-recognizer -it --rm street-recognizer bash
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -v "$(Get-Location):/usr/src/app" -it --rm street-recognizer bash
+docker run -v "$(Get-Location):/usr/src/app" --name street-recognizer -it --rm street-recognizer bash
 ```
 
 ## Full Process
