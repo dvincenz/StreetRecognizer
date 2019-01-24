@@ -87,14 +87,17 @@ class GeoLines:
 
     def random_points(self, number):
         random_points = []
+        random_numbers = []
         for i in range(0, number):
-            random_number = random.uniform(0,self.total_length)
+            random_numbers.append(random.uniform(0,self.total_length))
+            random_numbers.sort()
             temp_length = 0
-            for line in self.lines:
-                temp_length += line.length
-                if temp_length > random_number:
+        for line in self.lines:
+            temp_length += line.length
+            for number in random_numbers:
+                if temp_length > number:
                     point = line.interpolate(random.uniform(0, line.length))
                     random_points.append(GeoPoint(point.x, point.y))
+                    random_numbers.remove(number)
                     break
         return random_points
-
