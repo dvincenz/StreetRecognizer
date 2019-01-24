@@ -1,6 +1,7 @@
 import os
 import random
 import sqlite3
+import progressbar
 
 from PIL import Image
 
@@ -31,18 +32,18 @@ class RandomImageProvider:
     def get_random_images(self, number: int, line_strings):
         geo_lines = GeoLines(line_strings)
         points = geo_lines.random_points(number)
-
-        print('Taking sample image for every selected point...')
+        
         Image.MAX_IMAGE_PIXELS = 20000 * 20000
-
-        image_number = 0
-        for point in points:
-            try:
-                sample = self._get_sample_image(point)
-                self.writer.write(sample, os.path.join(self.out_path, '{0:04d}.png'.format(image_number)))
-                image_number += 1
-            except ValueError as ex:
-                print('Could not create sample image:\n\t{0}'.format(ex))
+        with progressbar.ProgressBar(max_value=10) as bar:
+            image_number = 0
+            for point in points:
+                try:
+                    sample = self._get_sample_image(point)
+                    self.writer.write(sample, os.path.join(self.out_path, '{0:04d}.png'.format(image_number)))
+                    image_number += 1
+                    bar.update(image_number)
+                except ValueError as ex:
+                    print('Could not create sample image:\n\t{0}'.format(ex))
     
 
     def _find_ortho_photo(self, point: GeoPoint) -> str:
