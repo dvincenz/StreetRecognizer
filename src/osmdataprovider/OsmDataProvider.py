@@ -10,7 +10,7 @@ import overpass
 from shapely.geometry import LineString, mapping
 
 from descartes import PolygonPatch
-from goedataprovider.GeoDataProvider import GeoDataProvider
+from geodataprovider.GeoDataProvider import GeoDataProvider
 
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
