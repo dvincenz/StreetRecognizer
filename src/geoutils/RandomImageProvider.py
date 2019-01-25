@@ -12,15 +12,6 @@ from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 from utils.AsyncWriter import AsyncWriter
 
 class RandomImageProvider:
-    LOADER_WIDGETS =[
-            ' [', os.path.basename(os.path.normpath(self.out_path)) , '] ',
-            progressbar.Percentage(), ' ',
-            progressbar.SimpleProgress(), ' ',
-            progressbar.Bar(),
-            progressbar.Timer(), ' ',
-            progressbar.ETA()
-        ]
-
     def __init__(self, image_size, out_path: str, metadata: str, verbose, is_seed_fix = False):
         self.image_size = image_size
         self.conn = sqlite3.connect(metadata)
@@ -43,7 +34,7 @@ class RandomImageProvider:
 
     def get_random_images(self, number: int, line_strings, overwrite=False):
         geo_lines = GeoLines(line_strings)
-        image_number = self._get_image_number()
+        image_number = self._get_image_number(overwrite)
         points = geo_lines.random_points(number - image_number)
         Image.MAX_IMAGE_PIXELS = 20000 * 20000
 
@@ -51,7 +42,16 @@ class RandomImageProvider:
         for point in points:
             points_by_image.setdefault(self._find_ortho_photo(point),[]).append(point)    
               
-        with progressbar.ProgressBar(max_value=number, widgets=self.LOADER_WIDGETS) as bar:
+        widgets=[
+            ' [', os.path.basename(os.path.normpath(self.out_path)) , '] ',
+            progressbar.Percentage(), ' ',
+            progressbar.SimpleProgress(), ' ',
+            progressbar.Bar(),
+            progressbar.Timer(), ' ',
+            progressbar.ETA()
+        ]
+
+        with progressbar.ProgressBar(max_value=number, widgets=widgets) as bar:
             for key, value in points_by_image.items():
                 try:
                     for point in value:
@@ -93,10 +93,12 @@ class RandomImageProvider:
 
         return self.current_image.crop((x - self.image_size / 2, y - self.image_size / 2, x + self.image_size / 2, y + self.image_size / 2))
 
-    def _get_image_number(self):
+    def _get_image_number(self, overwrite: bool):
         image_number = 0
         if not overwrite:
             image_number = sum([len(files) for r, d, files in os.walk(self.out_path)])
         if self.is_seed_fix and image_number > 0:
             print("you set flag is_seed_fix = false, override = false and you already have some images in your dir. The new images will may be the same images like you already have, please dubblecheck if it's what you want.")
-       return image_number
+        return image_number
+
+
