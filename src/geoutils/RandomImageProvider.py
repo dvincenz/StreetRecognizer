@@ -12,6 +12,15 @@ from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 from utils.AsyncWriter import AsyncWriter
 
 class RandomImageProvider:
+    LOADER_WIDGETS =[
+            ' [', os.path.basename(os.path.normpath(self.out_path)) , '] ',
+            progressbar.Percentage(), ' ',
+            progressbar.SimpleProgress(), ' ',
+            progressbar.Bar(),
+            progressbar.Timer(), ' ',
+            progressbar.ETA()
+        ]
+
     def __init__(self, image_size, out_path: str, metadata: str, verbose, is_seed_fix = False):
         self.image_size = image_size
         self.conn = sqlite3.connect(metadata)
@@ -22,6 +31,8 @@ class RandomImageProvider:
         if is_seed_fix:
             random.seed(2)
         self.is_seed_fix = is_seed_fix
+        self.current_image = None
+        self.current_geoimage = None
     def __enter__(self):
         return self
 
@@ -32,27 +43,22 @@ class RandomImageProvider:
 
     def get_random_images(self, number: int, line_strings, overwrite=False):
         geo_lines = GeoLines(line_strings)
+        image_number = self._get_image_number()
+        points = geo_lines.random_points(number - image_number)
         Image.MAX_IMAGE_PIXELS = 20000 * 20000
-        widgets=[
-            ' [', os.path.basename(os.path.normpath(self.out_path)) , '] ',
-            progressbar.Percentage(), ' ',
-            progressbar.SimpleProgress(), ' ',
-            progressbar.Bar(),
-            progressbar.Timer(), ' ',
-            progressbar.ETA()
-        ]
-        image_number = 0
-        if not overwrite:
-            image_number = sum([len(files) for r, d, files in os.walk(self.out_path)])
-        if self.is_seed_fix and image_number > 0:
-            print("you set flag is_seed_fix = false, override = false and you already have some images in your dir. The new images will may be the same images like you already have, please dubblecheck if it's what you want.")
-        with progressbar.ProgressBar(max_value=number, widgets=widgets) as bar:
-            for image_number in range(image_number, number):
+
+        points_by_image = {}
+        for point in points:
+            points_by_image.setdefault(self._find_ortho_photo(point),[]).append(point)    
+              
+        with progressbar.ProgressBar(max_value=number, widgets=self.LOADER_WIDGETS) as bar:
+            for key, value in points_by_image.items():
                 try:
-                    sample = self._get_sample_image(geo_lines.random_points(1)[0])
-                    self.writer.write(sample, os.path.join(self.out_path, '{0:04d}.png'.format(image_number)))
-                    image_number += 1
-                    bar.update(image_number)
+                    for point in value:
+                        sample = self._get_sample_image(point=point, image_path=key)
+                        self.writer.write(sample, os.path.join(self.out_path, '{0:04d}.png'.format(image_number)))
+                        image_number += 1
+                        bar.update(image_number)
                 except ValueError as ex:
                     print('Could not create sample image:\n\t{0}'.format(ex))
 
@@ -73,17 +79,24 @@ class RandomImageProvider:
 
         return result[0]
 
-    def _get_sample_image(self, point: GeoPoint) -> Image:
-        geo_tiff_path = self._find_ortho_photo(point)
-        if geo_tiff_path is None:
-            raise ValueError('Could not find an Orthophoto for {0}'.format(point))
+    def _get_sample_image(self, point: GeoPoint, image_path: str) -> Image:
+        if image_path is None:
+            raise ValueError('Could not find an Orthophoto for {0} x {1}'.format(point.north, point.east))
+        if not self.current_image or self.current_image.filename != image_path:
+            self.current_geoimage = GeoDataProvider(geo_tiff_path=image_path)
+            self.current_image = Image.open(image_path)
 
-        geodataprovider = GeoDataProvider(geo_tiff_path=geo_tiff_path)
-        x, y = geodataprovider.geo_point_to_pixel(point)
-        image = Image.open(geo_tiff_path)
+        x, y = self.current_geoimage.geo_point_to_pixel(point)
+        
+        if not 0 <= x <=  self.current_image.size[0] or not 0 <= y <=  self.current_image.size[1]:
+            raise ValueError('GeoPoint {0} is outside Orthophoto {1}'.format(point, image_path))
 
-        if not 0 <= x <= image.size[0] or not 0 <= y <= image.size[1]:
-            raise ValueError('GeoPoint {0} is outside Orthophoto {1}'.format(point, geo_tiff_path))
+        return self.current_image.crop((x - self.image_size / 2, y - self.image_size / 2, x + self.image_size / 2, y + self.image_size / 2))
 
-        return image.crop((x - self.image_size / 2, y - self.image_size / 2, x + self.image_size / 2, y + self.image_size / 2))
-
+    def _get_image_number(self):
+        image_number = 0
+        if not overwrite:
+            image_number = sum([len(files) for r, d, files in os.walk(self.out_path)])
+        if self.is_seed_fix and image_number > 0:
+            print("you set flag is_seed_fix = false, override = false and you already have some images in your dir. The new images will may be the same images like you already have, please dubblecheck if it's what you want.")
+       return image_number
