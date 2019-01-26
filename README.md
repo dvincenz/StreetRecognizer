@@ -21,6 +21,13 @@ We created a docker image for easier development, so there is no need to install
 - You need [Docker](https://www.docker.com/) installed on your system.
 - You may need access to [swisstopo](https://www.swisstopo.admin.ch/) or similar images to be able to make use of our model one-to-one.
 
+To run long during tasks in the background you can use following syntax
+
+```bash
+chmod -x TrainingDataGenerator.py
+nohup python3 ./TrainingDataGenerator.py &
+```
+
 ### Build
 
 ```bash
@@ -34,13 +41,13 @@ The commands below will run the docker image and mount your local workspace into
 Linux:
 
 ```bash
-docker run -v $(pwd):/usr/src/app -it --rm street-recognizer bash
+docker run -v $(pwd):/usr/src/app --name street-recognizer -it --rm street-recognizer bash
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -v "$(Get-Location):/usr/src/app" -it --rm street-recognizer bash
+docker run -v "$(Get-Location):/usr/src/app" --name street-recognizer -it --rm street-recognizer bash
 ```
 
 ## Full Process
