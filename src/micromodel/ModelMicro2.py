@@ -133,6 +133,32 @@ class ModelMicro2:
             y_test=y_test
         )
 
+    def predict(self, input: str, output: str):
+        data = []
+
+        if os.path.isdir(input):
+            for file in os.listdir(input):
+                if os.path.splitext(image)[1] == 'png':
+                    image = Image.open(os.path.join(input, file))
+                    data.append(list(image.getdata()))
+
+        else:
+            image = Image.open(input)
+            data.append(list(image.getdata()))
+
+        x_predict = numpy.array(data).reshape(len(data), 32, 32, 3)
+
+        self._predict(
+            x_predict=x_predict,
+            output=output
+        )
+
+    def _predict(self, x_predict: numpy.array, output: str):
+        model = keras.models.load_model(self._model_path)
+        y_predict = model.predict_proba(x_predict)
+        print('Prediction: {0}'.format(y_predict))
+        # TODO: Write to JSON output
+
     def _train(self, x_train: [], y_train: [], x_test: [], y_test: []):
         # Convert class vectors to binary class matrices.
         y_train = keras.utils.to_categorical(y_train, self.NUM_CLASSES)
@@ -228,3 +254,11 @@ class ModelMicro2:
             'fine_gravel': 1
         }
         return mapping[surface]
+
+    @staticmethod
+    def _map_int_to_surface(number: int) -> str:
+        mapping = {
+            0: 'paved',
+            1: 'unpaved'
+        }
+        return mapping[number]

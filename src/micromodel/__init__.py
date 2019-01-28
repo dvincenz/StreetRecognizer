@@ -11,6 +11,8 @@ def _parse_args():
     parser.add_argument('--new', '--create', action='store_true', help='create a new model')
     parser.add_argument('--train', action='store_true', help='train the given model')
     parser.add_argument('--train-percent', type=float, default=0.5, help='percentage of data to use as training data; remainder will be used as test data (default: 0.5)')
+    parser.add_argument('--predict', type=str, help='make predictions for the given image or directory of images')
+    parser.add_argument('-o', '--out', type=str, help='output json file to write predictions to')
     return vars(parser.parse_args())
 
 def run():
@@ -26,6 +28,13 @@ def run():
 
     if args['train']:
         model.train(micro_image_dir=args['input'], train_percentage=args['train_percent'])
+
+    if args['predict']:
+        out_file = args['out']
+        if not out_file:
+            out_file = os.path.join('..', 'data', 'out', '{0}.json'.format(args['name']))
+            print('--out not specified, using {0}'.format(out_file))
+        model.predict(input=args['predict'], output=out_file)
 
 if __name__ == "__main__":
     run()
