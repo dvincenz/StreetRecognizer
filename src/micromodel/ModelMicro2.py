@@ -3,9 +3,12 @@
 # (https://www.cs.toronto.edu/~kriz/cifar.html).
 
 from __future__ import print_function
+from collections import OrderedDict
+from decimal import Decimal
 import random
 import os
 
+import json
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -19,11 +22,15 @@ from micromodel.Types import DataPoint
 class ModelMicro2:
     CLASSES = [
         'asphalt',
-        'concrete',
+        # 'gravel',
         'paved',
-        'dirt',
+        # 'ground',
+        'unpaved',
         'grass',
-        'unpaved'
+        'dirt',
+        'concrete',
+        # 'compacted',
+        # 'fine_gravel'
     ]
     BATCH_SIZE = 32
     NUM_CLASSES = 2
@@ -133,31 +140,85 @@ class ModelMicro2:
             y_test=y_test
         )
 
-    def predict(self, input: str, output: str):
+    def predict(self, input_path: str, output_file: str):
         data = []
+        images = []
 
-        if os.path.isdir(input):
-            for file in os.listdir(input):
-                if os.path.splitext(image)[1] == 'png':
-                    image = Image.open(os.path.join(input, file))
+        if os.path.isdir(input_path):
+            for file in os.listdir(input_path):
+                if os.path.splitext(file)[1] == '.png':
+                    image = Image.open(os.path.join(input_path, file))
                     data.append(list(image.getdata()))
+                    images.append(os.path.abspath(os.path.join(input_path, file)))
+            print('Collected {0} images for predictions'.format(len(images)))
 
         else:
-            image = Image.open(input)
+            image = Image.open(input_path)
             data.append(list(image.getdata()))
+            images.append(os.path.abspath(input_path))
 
         x_predict = numpy.array(data).reshape(len(data), 32, 32, 3)
 
         self._predict(
             x_predict=x_predict,
-            output=output
+            image_names=images,
+            output_file=output_file
         )
 
-    def _predict(self, x_predict: numpy.array, output: str):
+    def _predict(self, x_predict: numpy.array, image_names: [str], output_file: str):
         model = keras.models.load_model(self._model_path)
         y_predict = model.predict_proba(x_predict)
-        print('Prediction: {0}'.format(y_predict))
-        # TODO: Write to JSON output
+        
+        paved = 0
+        unpaved = 0
+        predictions = []
+
+        for i, prediction in enumerate(y_predict):
+            if prediction[0] >= 0.5:
+                paved += 1
+            else:
+                unpaved += 1
+
+            predictions.append(self._format_prediction(
+                image_name=image_names[i],
+                prediction=prediction
+            ))
+
+        data = OrderedDict([
+            ('model', self._model_path),
+            ('summary', OrderedDict([
+                ('total', len(x_predict)),
+                ('paved', paved),
+                ('unpaved', unpaved)
+                ])),
+            ('predictions', predictions)
+        ])
+
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        with open(output_file, mode='w', encoding='UTF-8') as file:
+            json.dump(data, file, indent=4)
+
+        print('Predictions saved to {0}'.format(output_file))
+        print(json.dumps(data['summary'], indent=4))
+
+    @staticmethod
+    def _format_prediction(image_name: str, prediction):
+        data = OrderedDict([
+            ('image', image_name)
+        ])
+        values = OrderedDict()
+        result = "Unknown"
+        max_value = 0
+        for surface in range(ModelMicro2.NUM_CLASSES):
+            key = ModelMicro2._map_int_to_surface(surface)
+            value = prediction[surface].item()
+            values.update([(key, value)])
+            if value > max_value:
+                result = key
+                max_value = value
+
+        data.update([('values', values), ('prediction', result)])
+        return data
 
     def _train(self, x_train: [], y_train: [], x_test: [], y_test: []):
         # Convert class vectors to binary class matrices.
