@@ -59,6 +59,24 @@ class OsmDataProvider:
         with open(osm_geojson_file, 'w') as file:
                 call(["osmtogeojson", osm_xml_file], stdout=file)
 
+    def export_unlabeled_ways_from_pbf(self, output_file: str = ""):
+        if output_file == "":
+            output_file = self.config.default_output_file_name
+
+        osm_xml_file = os.path.join(self.config.output_path, os.path.splitext(output_file)[0] + ".osm")
+        osm_geojson_file = os.path.join(self.config.output_path, output_file)
+
+        call([
+            "osmosis",
+            "--read-pbf", self.config.pbf_path,
+            "--tf", "accept-ways", "highway=*",
+            "--tf", "reject-ways", "surface=*",
+            "--tf", "reject-relations",
+            "--used-node",
+            "--write-xml", osm_xml_file])
+        with open(osm_geojson_file, 'w') as file:
+                call(["osmtogeojson", osm_xml_file], stdout=file)
+
     def _get_ways(self, response: geojson.feature.FeatureCollection):
         features = response["features"]
         ways = []
