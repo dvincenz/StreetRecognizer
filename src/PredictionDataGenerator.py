@@ -1,11 +1,17 @@
 import argparse
+import os
 
+import geojson
+import progressbar
+
+from geoutils.RandomImageProvider import RandomImageProvider
 from osmdataprovider import Provider
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 def _parse_args():
     parser = argparse.ArgumentParser(description='Generates prediction data for the micro model.')
-    parser.add_argument('-o', '--output', type=str, default='../data/in/micro', help='directory path to place the generated training images')
+    parser.add_argument('-o', '--output', type=str, default='../data/in/micro-predict', help='directory path to place the generated training images')
+    parser.add_argument('--meta-data', type=str, default='../data/metadata.db', help='path to the metadata sqlite database file')
     parser.add_argument('--osm-path', type=str, default='../data/in/osm', help='directory path to read/write OSM data to/from')
     parser.add_argument('--num-threads', type=int, help='maximum number of threads to run concurrently (default: unlimited)')
     parser.add_argument('-p', '--pbf', type=str, help='OSM PBF extract used as input, obtained from e.g. https://planet.osm.ch/')
@@ -24,12 +30,46 @@ def run():
             pbf_path=args['pbf']
         ))
         osm_data_provider.export_unlabeled_ways_from_pbf(
-            output_file='unlabeled-ways.json'
+            output_file='unlabeled-ways-filtered.json'
         )
     else:
         print("--pbf not provided; skipping OSM export")
 
-# 1) TODO: Create sample images of all ways (or subset thereof)
+# 1) Create sample images of all ways (or subset thereof)
+    geojson_file = os.path.join(args['osm_path'], 'unlabeled-ways-filtered.json')
+    with open(geojson_file, mode='r', encoding='UTF-8') as file:
+        geojson_data = geojson.load(file)
+
+    line_strings = []
+    for way in geojson_data.features:
+        if isinstance(way.geometry, geojson.LineString):
+            line_strings.append(way)
+
+    widgets = [
+        ' [', os.path.basename(os.path.normpath(args['output'])), '] ',
+        progressbar.Percentage(), ' ',
+        progressbar.SimpleProgress(), ' ',
+        progressbar.Bar(),
+        progressbar.Timer(), ' ',
+        progressbar.ETA()
+    ]
+
+    with progressbar.ProgressBar(max_value=len(line_strings), widgets=widgets) as bar:
+        #for i, line_string in enumerate(line_strings):
+	i = 0
+        line_string = line_strings[0]
+        with RandomImageProvider(
+                image_size=args['sample_size'],
+                out_path=os.path.join(args['output'], line_string.id[4:]),
+                metadata=args['meta_data'],
+                verbose=False
+        ) as rip:
+            rip.get_random_images(
+                number=args['sample_number'],
+                line_strings=[line_string],
+                show_progress=True
+            )
+        bar.update(i+1)
 
 if __name__ == "__main__":
     run()

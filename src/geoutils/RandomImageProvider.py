@@ -32,7 +32,7 @@ class RandomImageProvider:
         self.conn.close()
         self.writer.close()
 
-    def get_random_images(self, number: int, line_strings, overwrite=False):
+    def get_random_images(self, number: int, line_strings, overwrite=False, show_progress = True):
         geo_lines = GeoLines(line_strings)
         image_number = self._get_image_number(overwrite)
         points = geo_lines.random_points(number - image_number)
@@ -41,15 +41,18 @@ class RandomImageProvider:
         points_by_image = {}
         for point in points:
             points_by_image.setdefault(self._find_ortho_photo(point),[]).append(point)    
-              
-        widgets=[
-            ' [', os.path.basename(os.path.normpath(self.out_path)) , '] ',
-            progressbar.Percentage(), ' ',
-            progressbar.SimpleProgress(), ' ',
-            progressbar.Bar(),
-            progressbar.Timer(), ' ',
-            progressbar.ETA()
-        ]
+
+        if show_progress:
+            widgets = [
+                ' [', os.path.basename(os.path.normpath(self.out_path)) , '] ',
+                progressbar.Percentage(), ' ',
+                progressbar.SimpleProgress(), ' ',
+                progressbar.Bar(),
+                progressbar.Timer(), ' ',
+                progressbar.ETA()
+            ]
+        else:
+            widgets = []
 
         with progressbar.ProgressBar(max_value=number, widgets=widgets) as bar:
             for key, value in points_by_image.items():
