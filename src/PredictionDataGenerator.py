@@ -13,7 +13,7 @@ def _parse_args():
     parser.add_argument('-o', '--output', type=str, default='../data/in/micro-predict', help='directory path to place the generated training images')
     parser.add_argument('--meta-data', type=str, default='../data/metadata.db', help='path to the metadata sqlite database file')
     parser.add_argument('--osm-path', type=str, default='../data/in/osm', help='directory path to read/write OSM data to/from')
-    parser.add_argument('--num-threads', type=int, help='maximum number of threads to run concurrently (default: unlimited)')
+    parser.add_argument('-n', '--number', type=int, help='maximum number of streets to generate prediction data for (default: unlimited)')
     parser.add_argument('-p', '--pbf', type=str, help='OSM PBF extract used as input, obtained from e.g. https://planet.osm.ch/')
     parser.add_argument('--sample-size', type=int, default=32, help='size in pixels of the sample images taken at each point (default: 32)')
     parser.add_argument('--sample-number', type=int, default=3, help='number of samples per way (default 3)')
@@ -54,22 +54,28 @@ def run():
         progressbar.ETA()
     ]
 
+    maximum_lines = len(line_strings)
+
+    if args['number']:
+        maximum_lines = min(args['number'], maximum_lines)
+
     with progressbar.ProgressBar(max_value=len(line_strings), widgets=widgets) as bar:
-        #for i, line_string in enumerate(line_strings):
-	i = 0
-        line_string = line_strings[0]
-        with RandomImageProvider(
-                image_size=args['sample_size'],
-                out_path=os.path.join(args['output'], line_string.id[4:]),
-                metadata=args['meta_data'],
-                verbose=False
-        ) as rip:
-            rip.get_random_images(
-                number=args['sample_number'],
-                line_strings=[line_string],
-                show_progress=True
-            )
-        bar.update(i+1)
+        # TODO: This loop is slow AF, since we always only pass 1 street to the RandomImageProvider,
+        # which makes it impossible to optimize loading of the Orthos across streets.
+        for i in range(0, maximum_lines):
+            line_string = line_strings[i]
+            with RandomImageProvider(
+                    image_size=args['sample_size'],
+                    out_path=os.path.join(args['output'], line_string.id[4:]),
+                    metadata=args['meta_data'],
+                    verbose=args['verbose']
+            ) as rip:
+                rip.get_random_images(
+                    number=args['sample_number'],
+                    line_strings=[line_string],
+                    show_progress=True
+                )
+            bar.update(i+1)
 
 if __name__ == "__main__":
     run()
