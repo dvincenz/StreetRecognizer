@@ -2,6 +2,7 @@ import argparse
 import os
 
 from micromodel.ModelMicro2 import ModelMicro2
+from micromodel.ModelMicro8 import ModelMicro8
 from micromodel.ModelMicro10 import ModelMicro10
 
 def _parse_args():
@@ -24,6 +25,8 @@ def run():
     if args['new']:
         if args['num_classes'] == 2:
             model = ModelMicro2.create_untrained(model_name)
+        elif args['num_classes'] == 8:
+            model = ModelMicro8.create_untrained(model_name)
         elif args['num_classes'] == 10:
             model = ModelMicro10.create_untrained(model_name)
         else:
@@ -32,6 +35,8 @@ def run():
     else:
         if args['num_classes'] == 2:
             model = ModelMicro2.load(model_name)
+        elif args['num_classes'] == 8:
+            model = ModelMicro8.load(model_name)
         elif args['num_classes'] == 10:
             model = ModelMicro10.load(model_name)
         else:
