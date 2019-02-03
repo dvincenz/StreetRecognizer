@@ -43,8 +43,7 @@ def run():
     with open(args['output'], mode='w+', encoding='UTF-8') as file:
         geojson.dump(obj=osm_geojson, fp=file, indent=4)
 
-    os.
-    print('Result written to {0}'.format(args['output']))
+    print('Result written to {0}'.format(os.abspath(args['output'])))
 
 def _get_all_predictions_by_street(prediction_result) -> dict:
     result = {}
