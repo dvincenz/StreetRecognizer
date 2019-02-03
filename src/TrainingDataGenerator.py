@@ -5,18 +5,12 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import os
-import random
-import sqlite3
 
 import geojson
-from PIL import Image
 
-from geodataprovider.GeoDataProvider import GeoDataProvider
-from geoutils.Types import GeoPoint, GeoLines
+from geoutils.RandomImageProvider import RandomImageProvider
 from osmdataprovider.OsmDataProvider import OsmDataProvider
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
-from utils.AsyncWriter import AsyncWriter
-from geoutils.RandomImageProvider import RandomImageProvider
 
 # According to http://taginfo.openstreetmap.ch/keys/surface#values, the 10 most
 # labeled surfaces are: asphalt, gravel, paved, ground, unpaved, grass, dirt, concrete, compacted, fine_gravel
@@ -64,9 +58,6 @@ def _export_labeled_ways(provider: OsmDataProvider, num_threads: int = len(CLASS
     print("Done!")
 
 
-
-
-
 def run():
     args = _parse_args()
 
@@ -96,20 +87,20 @@ def run():
             json = geojson.load(file)
 
         ways[surface] = {}
-        
+
         line_strings = []
         for way in json.features:
             if isinstance(way.geometry, geojson.LineString):
                 line_strings.append(way)
         with RandomImageProvider(
-            image_size=args['sample_size'],
-            out_path=os.path.join(args['output'], surface),
-            metadata=args["meta_data"],
-            verbose=args['verbose'],
-            is_seed_fix=False
+                image_size=args['sample_size'],
+                out_path=os.path.join(args['output'], surface),
+                metadata=args["meta_data"],
+                verbose=args['verbose'],
+                is_seed_fix=False
         ) as r:
             r.get_random_images(
-                number=args["sample_number"], 
+                number=args["sample_number"],
                 line_strings=line_strings
             )
         return surface
@@ -118,6 +109,6 @@ def run():
         for future in executor.map(_random_images, CLASSES):
             print("done {0}".format(future))
 
-    
+
 if __name__ == "__main__":
     run()
