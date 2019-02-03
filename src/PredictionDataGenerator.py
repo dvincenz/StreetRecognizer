@@ -10,7 +10,7 @@ from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 def _parse_args():
     parser = argparse.ArgumentParser(description='Generates prediction data for the micro model.')
-    parser.add_argument('-o', '--output', type=str, default='../data/in/micro-predict', help='directory path to place the generated training images')
+    parser.add_argument('-o', '--output', type=str, default='../data/in/micro-predict', help='directory path to place the generated prediction images')
     parser.add_argument('--meta-data', type=str, default='../data/metadata.db', help='path to the metadata sqlite database file')
     parser.add_argument('--osm-path', type=str, default='../data/in/osm', help='directory path to read/write OSM data to/from')
     parser.add_argument('-n', '--number', type=int, help='maximum number of streets to generate prediction data for (default: unlimited)')

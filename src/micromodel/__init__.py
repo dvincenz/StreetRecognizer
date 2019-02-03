@@ -17,40 +17,42 @@ def _parse_args():
     parser.add_argument('-o', '--out', type=str, help='output json file to write predictions to')
     return vars(parser.parse_args())
 
-def run():
+def _run():
     args = _parse_args()
+    micromodel(**args)
 
-    model_name = '{0}.h5'.format(args['name'])
+def micromodel(**kwargs):
+    model_name = '{0}.h5'.format(kwargs.get('name'))
 
-    if args['new']:
-        if args['num_classes'] == 2:
+    if kwargs.get('new'):
+        if kwargs.get('num_classes') == 2:
             model = ModelMicro2.create_untrained(model_name)
-        elif args['num_classes'] == 8:
+        elif kwargs.get('num_classes') == 8:
             model = ModelMicro8.create_untrained(model_name)
-        elif args['num_classes'] == 10:
+        elif kwargs.get('num_classes') == 10:
             model = ModelMicro10.create_untrained(model_name)
         else:
-            raise ValueError('No model found for {0} classes'.format(args['num_classes']))
+            raise ValueError('No model found for {0} classes'.format(kwargs.get('num_classes')))
 
     else:
-        if args['num_classes'] == 2:
+        if kwargs.get('num_classes') == 2:
             model = ModelMicro2.load(model_name)
-        elif args['num_classes'] == 8:
+        elif kwargs.get('num_classes') == 8:
             model = ModelMicro8.load(model_name)
-        elif args['num_classes'] == 10:
+        elif kwargs.get('num_classes') == 10:
             model = ModelMicro10.load(model_name)
         else:
-            raise ValueError('No model found for {0} classes'.format(args['num_classes']))
+            raise ValueError('No model found for {0} classes'.format(kwargs.get('num_classes')))
 
-    if args['train']:
-        model.train(micro_image_dir=args['input'], train_percentage=args['train_percent'])
+    if kwargs.get('train'):
+        model.train(micro_image_dir=kwargs.get('input'), train_percentage=kwargs.get('train_percent'))
 
-    if args['predict']:
-        out_file = args['out']
+    if kwargs.get('predict'):
+        out_file = kwargs.get('out')
         if not out_file:
-            out_file = os.path.join('..', 'data', 'out', '{0}.json'.format(args['name']))
+            out_file = os.path.join('..', 'data', 'out', '{0}.json'.format(kwargs.get('name')))
             print('--out not specified, using {0}'.format(out_file))
-        model.predict(input_path=args['predict'], output_file=out_file)
+        model.predict(input_path=kwargs.get('predict'), output_file=out_file)
 
 if __name__ == "__main__":
-    run()
+    _run()
