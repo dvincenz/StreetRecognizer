@@ -30,13 +30,13 @@ def run():
             pbf_path=args['pbf']
         ))
         osm_data_provider.export_unlabeled_ways_from_pbf(
-            output_file='unlabeled-ways-filtered.json'
+            output_file='unlabeled-ways.json'
         )
     else:
         print("--pbf not provided; skipping OSM export")
 
 # 1) Create sample images of all ways (or subset thereof)
-    geojson_file = os.path.join(args['osm_path'], 'unlabeled-ways-filtered.json')
+    geojson_file = os.path.join(args['osm_path'], 'unlabeled-ways.json')
     with open(geojson_file, mode='r', encoding='UTF-8') as file:
         geojson_data = geojson.load(file)
 

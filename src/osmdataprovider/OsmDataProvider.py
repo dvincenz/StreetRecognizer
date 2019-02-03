@@ -75,7 +75,7 @@ class OsmDataProvider:
             "--used-node",
             "--write-xml", osm_xml_file])
         with open(osm_geojson_file, 'w') as file:
-                call(["osmtogeojson", osm_xml_file], stdout=file)
+                call(["node", "--max_old_space_size=10240", "/usr/local/bin/osmtogeojson", osm_xml_file], stdout=file)
 
     def _get_ways(self, response: geojson.feature.FeatureCollection):
         features = response["features"]
