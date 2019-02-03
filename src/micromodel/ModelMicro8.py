@@ -14,9 +14,10 @@ from keras.layers import Conv2D, MaxPooling2D
 import numpy
 from PIL import Image
 
+from micromodel.ModelMicro import ModelMicro
 from micromodel.Types import DataPoint
 
-class ModelMicro8:
+class ModelMicro8(ModelMicro):
     CLASSES = [
         'asphalt',
         'gravel',
@@ -36,7 +37,10 @@ class ModelMicro8:
     DATA_AUGMENTATION = True
 
     def __init__(self, model_path: str):
-        self._model_path = model_path
+        super().__init__(
+            num_classes=self.NUM_CLASSES,
+            model_path=model_path
+        )
 
     @classmethod
     def create_untrained(cls, model_name: str) -> "ModelMicro8":

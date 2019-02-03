@@ -4,11 +4,9 @@
 
 from __future__ import print_function
 from collections import OrderedDict
-from decimal import Decimal
 import random
 import os
 
-import json
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -17,9 +15,10 @@ from keras.layers import Conv2D, MaxPooling2D
 import numpy
 from PIL import Image
 
+from micromodel.ModelMicro import ModelMicro
 from micromodel.Types import DataPoint
 
-class ModelMicro2:
+class ModelMicro2(ModelMicro):
     CLASSES = [
         'asphalt',
         # 'gravel',
@@ -32,14 +31,17 @@ class ModelMicro2:
         # 'compacted',
         # 'fine_gravel'
     ]
-    BATCH_SIZE = 32
     NUM_CLASSES = 2
-    EPOCHS = 100
-    STEPS_PER_EPOCH = 100
+    BATCH_SIZE = 32
+    EPOCHS = 200
+    STEPS_PER_EPOCH = 300
     DATA_AUGMENTATION = True
 
     def __init__(self, model_path: str):
-        self._model_path = model_path
+        super().__init__(
+            num_classes=self.NUM_CLASSES,
+            model_path=model_path
+        )
 
     @classmethod
     def create_untrained(cls, model_name: str) -> "ModelMicro2":
@@ -140,90 +142,10 @@ class ModelMicro2:
             y_test=y_test
         )
 
-    def predict(self, input_path: str, output_file: str):
-        data = []
-        images = []
-
-        if os.path.isdir(input_path):
-            for file in os.listdir(input_path):
-                if os.path.splitext(file)[1] == '.png':
-                    image = Image.open(os.path.join(input_path, file))
-                    data.append(list(image.getdata()))
-                    images.append(os.path.abspath(os.path.join(input_path, file)))
-            print('Collected {0} images for predictions'.format(len(images)))
-
-        else:
-            image = Image.open(input_path)
-            data.append(list(image.getdata()))
-            images.append(os.path.abspath(input_path))
-
-        x_predict = numpy.array(data).reshape(len(data), 32, 32, 3)
-
-        self._predict(
-            x_predict=x_predict,
-            image_names=images,
-            output_file=output_file
-        )
-
-    def _predict(self, x_predict: numpy.array, image_names: [str], output_file: str):
-        model = keras.models.load_model(self._model_path)
-        y_predict = model.predict_proba(x_predict)
-        
-        paved = 0
-        unpaved = 0
-        predictions = []
-
-        for i, prediction in enumerate(y_predict):
-            if prediction[0] >= 0.5:
-                paved += 1
-            else:
-                unpaved += 1
-
-            predictions.append(self._format_prediction(
-                image_name=image_names[i],
-                prediction=prediction
-            ))
-
-        data = OrderedDict([
-            ('model', self._model_path),
-            ('summary', OrderedDict([
-                ('total', len(x_predict)),
-                ('paved', paved),
-                ('unpaved', unpaved)
-                ])),
-            ('predictions', predictions)
-        ])
-
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, mode='w', encoding='UTF-8') as file:
-            json.dump(data, file, indent=4)
-
-        print('Predictions saved to {0}'.format(output_file))
-        print(json.dumps(data['summary'], indent=4))
-
-    @staticmethod
-    def _format_prediction(image_name: str, prediction):
-        data = OrderedDict([
-            ('image', image_name)
-        ])
-        values = OrderedDict()
-        result = "Unknown"
-        max_value = 0
-        for surface in range(ModelMicro2.NUM_CLASSES):
-            key = ModelMicro2._map_int_to_surface(surface)
-            value = prediction[surface].item()
-            values.update([(key, value)])
-            if value > max_value:
-                result = key
-                max_value = value
-
-        data.update([('values', values), ('prediction', result)])
-        return data
-
     def _train(self, x_train: [], y_train: [], x_test: [], y_test: []):
         # Convert class vectors to binary class matrices.
-        y_train = keras.utils.to_categorical(y_train, self.NUM_CLASSES)
-        y_test = keras.utils.to_categorical(y_test, self.NUM_CLASSES)
+        y_train = keras.utils.to_categorical(y_train, self.num_classes)
+        y_test = keras.utils.to_categorical(y_test, self.num_classes)
 
         model = keras.models.load_model(self._model_path)
 
@@ -316,8 +238,7 @@ class ModelMicro2:
         }
         return mapping[surface]
 
-    @staticmethod
-    def _map_int_to_surface(number: int) -> str:
+    def _map_int_to_surface(self, number: int) -> str:
         mapping = {
             0: 'paved',
             1: 'unpaved'
