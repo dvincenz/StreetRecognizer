@@ -34,3 +34,14 @@ class GeoDataProvider:
             ) / (self._b * self._d - self._a * self._e)
         x = (point.east - self._b * y - self._xoff) / self._a
         return (x, y)
+
+    def get_lower_left_coordinates(self):
+        return self.pixel_to_geo_point(0, self.data_source.RasterYSize)
+
+    def get_upper_right_coordinates(self):
+        return self.pixel_to_geo_point(self.data_source.RasterXSize, 0)
+
+    def get_pixel_width(self):
+        return self._a
+    def get_pixel_hight(self):
+        return self._e

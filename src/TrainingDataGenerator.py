@@ -5,14 +5,10 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import os
-import random
-import sqlite3
 
 import geojson
-from PIL import Image
 
-from geodataprovider.GeoDataProvider import GeoDataProvider
-from geoutils.Types import GeoPoint, GeoLines
+from geoutils.RandomImageProvider import RandomImageProvider
 from osmdataprovider.OsmDataProvider import OsmDataProvider
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
@@ -43,7 +39,8 @@ def _parse_args():
     parser.add_argument('--num-threads', type=int, help='maximum number of threads to run concurrently (default: unlimited)')
     parser.add_argument('-p', '--pbf', type=str, help='OSM PBF extract used as input, obtained from e.g. https://planet.osm.ch/')
     parser.add_argument('--sample-size', type=int, default=32, help='size in pixels of the sample images taken at each point (default: 32)')
-    parser.add_argument('--sample-number', type=int, default=2000, help='number of random images per category (default 2000)')
+    parser.add_argument('--sample-number', type=int, default=6000, help='number of random images per category (default 6000)')
+    parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose output')
     return vars(parser.parse_args())
 
 def _export_labeled_ways(provider: OsmDataProvider, num_threads: int = len(CLASSES)):
@@ -60,41 +57,9 @@ def _export_labeled_ways(provider: OsmDataProvider, num_threads: int = len(CLASS
 
     print("Done!")
 
-def _find_ortho_photo(cursor: sqlite3.Cursor, point: GeoPoint) -> str:
-    result = cursor.execute('''
-        SELECT file_path FROM orthos
-        WHERE east_min < ?
-        AND east_max > ?
-        AND north_min < ?
-        AND north_max > ?
-    ''', (point.east, point.east, point.north, point.north)).fetchone()
-
-    if result is None:
-        return None
-
-    print('Point {0} => Ortho {1}'.format(point, result[0]))
-    return result[0]
-
-
-def _get_sample_image(point: GeoPoint, size: int, cursor: sqlite3.Cursor) -> Image:
-    geo_tiff_path = _find_ortho_photo(cursor=cursor, point=point)
-    if geo_tiff_path is None:
-        raise ValueError('Could not find an Orthophoto for {0}'.format(point))
-
-    geodataprovider = GeoDataProvider(geo_tiff_path=geo_tiff_path)
-    x, y = geodataprovider.geo_point_to_pixel(point)
-    image = Image.open(geo_tiff_path)
-
-    if not 0 <= x <= image.size[0] or not 0 <= y <= image.size[1]:
-        raise ValueError('GeoPoint {0} is outside Orthophoto {1}'.format(point, geo_tiff_path))
-
-    return image.crop((x - size / 2, y - size / 2, x + size / 2, y + size / 2))
 
 def run():
     args = _parse_args()
-
-# Set a fixed seed for reproducible debugging
-    random.seed(2)
 
 # 0) Export all labeled ways to geojson
     if args['pbf']:
@@ -111,7 +76,8 @@ def run():
     print('Selecting sample ways among all labeled ways...')
 
     ways = {}
-    for surface in CLASSES:
+    def _random_images(surface: str):
+        print('\tProcessing {0}...'.format(surface))
         with open(
                 file=os.path.join(
                     args['osm_path'],
@@ -121,46 +87,28 @@ def run():
             json = geojson.load(file)
 
         ways[surface] = {}
-        
+
         line_strings = []
         for way in json.features:
             if isinstance(way.geometry, geojson.LineString):
                 line_strings.append(way)
+        with RandomImageProvider(
+                image_size=args['sample_size'],
+                out_path=os.path.join(args['output'], surface),
+                metadata=args["meta_data"],
+                verbose=args['verbose'],
+                is_seed_fix=False
+        ) as r:
+            r.get_random_images(
+                number=args["sample_number"],
+                line_strings=line_strings
+            )
+        return surface
+    # because of to slow harddisc parallelizing this function on this machine makes no sence
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        for future in executor.map(_random_images, CLASSES):
+            print("done {0}".format(future))
 
-        ways[surface]['ways'] = line_strings
-        geo_lines = GeoLines(line_strings)
-        ways[surface]['points'] = geo_lines.random_points(args['sample_number'])
-
-# 2) Take a sample image at the selected points
-    print('Taking sample image for every selected point...')
-
-    Image.MAX_IMAGE_PIXELS = 20000 * 20000
-
-    conn = sqlite3.connect(args['meta_data'])
-    cursor = conn.cursor()
-
-    for surface in CLASSES:
-        ways[surface]['samples'] = []
-        for point in ways[surface]['points']:
-            try:
-                sample = _get_sample_image(
-                    point=point,
-                    size=args['sample_size'],
-                    cursor=cursor)
-                ways[surface]['samples'].append(sample)
-            except ValueError as ex:
-                print('Could not create sample image for surface {0}:\n\t{1}'.format(surface, ex))
-
-    conn.commit()
-    conn.close()
-
-# 3) Store the images in labeled directories
-    print('Storing sample images in output directory ({0})...'.format(args['output']))
-
-    for surface in CLASSES:
-        os.makedirs(os.path.join(args['output'], surface), exist_ok=True)
-        for i, sample in enumerate(ways[surface]['samples']):
-            sample.save(os.path.join(args['output'], surface, '{0:04d}.png'.format(i)), 'PNG')
 
 if __name__ == "__main__":
     run()

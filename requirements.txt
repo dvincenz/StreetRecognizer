@@ -1,9 +1,10 @@
 azure-storage
 descartes 
 exifread
+keras
 matplotlib
 overpass
 pygdal==1.11.3.3
 requests
 shapely
-sqlite3
+progressbar2

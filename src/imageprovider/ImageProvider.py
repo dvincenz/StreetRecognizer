@@ -4,6 +4,7 @@ import os
 from subprocess import call
 from azure.storage.blob import BlockBlobService
 
+from utils.logger import get_logger
 from imageprovider.ImageProviderConfig import ImageProviderConfig
 
 
@@ -11,6 +12,7 @@ class ImageProvider:
     EPSG_LV95 = "EPSG:2056"
     EPSG_WGS84 = "EPSG:4326"
     def __init__ (self, config: ImageProviderConfig):
+        self.logger = get_logger("imageprovider")
         self.config = config
         self.all_images = []
         if self.config.is_azure:
