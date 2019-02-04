@@ -111,8 +111,7 @@ class ImageProvider:
 
     @staticmethod
     def _image_number_matches(ortho_file_name: str, image_number: str) -> bool:
-        match = re.match(r'DOP25_LV95_(\d{4}-\d{2})_\d+_\d+_\d+\.tiff?', ortho_file_name)
+        match = re.match(r'DOP25_LV95_(\d{4}-\d{2})_\d+_\d+_\d', ortho_file_name)
         if match:
             return match.group(1).find(image_number) > -1
-
         return False
