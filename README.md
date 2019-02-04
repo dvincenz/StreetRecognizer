@@ -82,6 +82,10 @@ py Predictor.py binary --num-classes 2
 
 This will output a final geojson at `../data/out/micro-predict.json`, ready to be displayed at e.g. [geojson.io](https://geojson.io).
 
+## Detailed Usage
+
+The above "Full Process" has some abstractions built-in, so the user does not have to use every python module explicitly. However, this can still be done, if desired. Every python module used along the way is accessible through the command line. Every module supports the `-h` and `--help` parameters outlining their usage.
+
 ## Deprecated Modules
 
 ### Slicer
