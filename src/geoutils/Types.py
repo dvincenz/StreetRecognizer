@@ -15,6 +15,8 @@ class GeoPoint:
     def __str__(self):
         return '({0}E, {1}N)'.format(self.east, self.north)
 
+    __repr__ = __str__
+
 
 class ParametricGeoLine:
     def __init__(self, base: GeoPoint, vector: GeoPoint):
@@ -72,6 +74,11 @@ class GeoRect:
             GeoLineSegment(GeoPoint(east=self.a.east, north=self.b.north), self.b),
             GeoLineSegment(GeoPoint(east=self.b.east, north=self.a.north), self.b)
         ]
+
+    def __str__(self):
+        return '{{a={0}, b={1}}}'.format(self.a, self.b)
+
+    __repr__ = __str__
 
 
 class GeoLines:
