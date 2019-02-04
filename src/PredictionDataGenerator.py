@@ -21,7 +21,7 @@ def _parse_args():
     parser.add_argument('-n', '--number', type=int, help='maximum number of streets to generate prediction data for (default: unlimited)')
     parser.add_argument('--num-threads', type=int, help='maximum number of threads to run concurrently (default: unlimited)')
     parser.add_argument('-p', '--pbf', type=str, help='OSM PBF extract used as input, obtained from e.g. https://planet.osm.ch/')
-    parser.add_argument('--partitions', type=int, default=2, help='number of partitions to split the osm extract into per dimension (default: 2)')
+    parser.add_argument('--partitions', type=int, default=5, help='number of partitions to split the osm extract into per dimension (default: 2)')
     parser.add_argument('--sample-size', type=int, default=32, help='size in pixels of the sample images taken at each point (default: 32)')
     parser.add_argument('--sample-number', type=int, default=3, help='number of samples per way (default 3)')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose output')

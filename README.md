@@ -1,96 +1,42 @@
 # StreetRecognizer
 
-Proof of concept to recognize and attribute streets/roads or trails surfaces based on orthophotos and machine learning
+Proof of concept to recognize and attribute streets/roads or trails surfaces based on orthophotos and machine learning.
 
-## Environment
-
-### HSR Server
-
-For executing code on the HSR server (increased performance), the following command can be used to establish an SSH connection:
-
-```bash
-ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -p 8080 root@sifs0004.infs.ch
-```
-
-*The password is intentionally not included in this documentation.*
-
-### Prerequisites
-
-We created a docker image for easier development, so there is no need to install all Python libraries locally.
-
-- You need [Docker](https://www.docker.com/) installed on your system.
-- You may need access to [swisstopo](https://www.swisstopo.admin.ch/) or similar images to be able to make use of our model one-to-one.
-
-To run long during tasks in the background you can use following syntax
-
-```bash
-chmod -x TrainingDataGenerator.py
-nohup python3 ./TrainingDataGenerator.py &
-```
-
-### Build
-
-```bash
-docker build -t street-recognizer .
-```
-
-### Run
-
-The commands below will run the docker image and mount your local workspace into the image, so you can execute changes to the files live inside the container.
-
-Linux:
-
-```bash
-docker run -v $(pwd):/usr/src/app --name street-recognizer -it --rm street-recognizer bash
-```
-
-Windows (PowerShell):
-
-```powershell
-docker run -v "$(Get-Location):/usr/src/app" --name street-recognizer -it --rm street-recognizer bash
-```
+To get started with developing, see the [Developer Guide](./developer-guide.md).
 
 ## Full Process
 
 The full process encompasses acquiring ortho photos, preparing the input data, training the model, and using the model to make predictions. This process is split into multiple modules, of which some steps must be executed manually.
 
-### Acquiring Ortho Photos
+The process can be summarized into the following steps:
 
-*See [Image Provider](#image-provider).*
+1) Acquire ortho photos
+2) Generate training data samples
+3) Train and save the model
+4) Generate image samples of the streets to predict
+5) Make predictions using the saved model
 
-### Preparing Input Data
+### Acquire Ortho Photos
 
-First, the ortho photo metadata must be extracted into a database for easier lookup:  
-*See [Metadata Extractor](#metadata-extractor).*
+The image provider, downloads images from an azure blob storage and converts the images from LV95 to WGS84 coordinate system. You don't need to have an azure account, you can also provide the images locally.
 
-Then, we need to generate the training (and test) data sets:  
-*See [TrainingDataGenerator](#trainingdatagenerator).*
-
-### Training the Model
-
-*todo*
-
-### Making predictions
-
-*todo*
-
-## Modules
-
-### TrainingDataGenerator
-
-Generates images of fixed size of labeled streets.
-
-#### Prerequisites
-
-For the TrainingDataGenerator to work properly, WGS84 Orthophotos are required. Additionally, these Orthophotos must be indexed using the `metaextractor`.
-
-#### Usage
-
-```bash
-py TrainingDataGenerator.py -h
-```
+This must be done for all photos you want to use in training or making predictions.
 
 #### Example
+
+```bash
+py imageprovider 1195-22
+```
+
+### Generate training data samples
+
+First, the ortho photo metadata must be extracted into a database for easier lookup:
+
+```bash
+py metaextractor --ortho-data /swissimage/wgs84 ../data/metadata.db
+```
+
+Then, we need to generate the training (and test) data sets:  
 
 ```bash
 py TrainingDataGenerator.py --pbf ../data/in/osm/switzerland-exact.osm.pbf
@@ -102,7 +48,45 @@ The `switzerland_exact.osm.pbf` file can be obtained from [planet.osm.ch](https:
 wget https://planet.osm.ch/switzerland-exact.osm.pbf -O ../data/in/osm/switzerland-exact.osm.pbf
 ```
 
+### Train and save the model
+
+There are three different models to choose from:
+
+**Binary Model**: Classifies an image into either paved or unpaved.
+**Octal Model**: Classifies an image into the 8 most common sub-types of paved or unpaved.
+**Decimal Model**: Classifies an image into the 10 most common surfaces.
+
+We recommend using the binary model, as it has the highest accuracy:
+
+```bash
+py micromodel binary --num-classes 2 --new --train
+```
+
+### Generate prediction images
+
+Since there are many unlabeled ways and the performance of this script is not yet fully optimized, we recommend limiting the number of prepared streets to a reasonable number.
+
+```bash
+py PredictionDataGenerator.py -n 300
+```
+
+Note that this will actually prepare N streets for every partition (default 25). However, many streets will be duplicated, leading to less than 25*N streets in total in the end.
+
+### Make predictions
+
+To finally make predictions for all prepared ways, do the following:
+
+```bash
+py Predictor.py binary --num-classes 2
+```
+
+This will output a final geojson at `../data/out/micro-predict.json`, ready to be displayed at e.g. [geojson.io](https://geojson.io).
+
+## Deprecated Modules
+
 ### Slicer
+
+The slicer was originally intended to slice an ortho photo into tiles of e.g. 1024x1024 pixels. The idea being our model would work with these larger tiles, however this proved too problematic for many reasons detailed in [Model Ideas](./model.md).
 
 #### Usage
 
@@ -115,107 +99,3 @@ py slicer -h
 ```bash
 py slicer ../data/in/ortho/wgs84/DOP25_LV95_1091-14_2013_1_13.tif ../data/out
 ```
-
-### Image provider
-
-The image provider, downloads images from an azure blob storage and convert the images from LV95 to WGS84 coordinate system. You don't need to have an azure account, you can also provide the images locally.
-
-#### Usage
-
-```bash
-py imageprovider -h
-```
-
-#### Example
-
-```bash
-py imageprovider 1195-22
-```
-
-#### Example in Python
-
-You can use this module in python as single executor, the same way as you use it in the console
-
-```python
-import ImageProvider
-
-ImageProvider.Provider(imageNumber="1151-22", azureaccount="swisstopo")
-```
-
-The other possibility is to use the module as object for advanced usage
-
-```python
-import ImageProvider
-from ImageProvider import ImageProviderConfig
-
-config = ImageProviderConfig(azure_blob_account="swisstopo")
-images = ImageProvider.Provider(config=config)
-images.get_image("185-34")
-
-```
-
-### Osm data provider
-
-Provides osm data for a defined coordinate area, or for the coordinates of a geoTiff image
-
-#### Usage in console
-
-```bash
-py osmdataprovider -h
-```
-
-#### Example in console
-
-```bash
-py osmdataprovider ../data/in/osm/vector -p ../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif
-```
-
-#### Example in Python
-
-You can use this module in python as single executor, the same way as you use it in the console
-
-```python
-import osmdataprovider
-osmdataprovider.Provider(target="../data/in/osm/vector", imagepath="../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif")
-```
-
-The other possibility is to use the module as object for advanced usage
-
-```python
-import osmdataprovider
-from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
-
-config = OsmDataProviderConfig(output_path = "../data/in/osm/vector", buffer={})
-osmData = osmdataprovider.Provider(config=config)
-osmData.export_ways_by_image('../data/in/ortho/wgs84/DOP25_LV95_2240-33_2015_1_15.tif')
-```
-
-### Metadata Extractor
-
-Extract relevant metadata from Ortho-Tiles and store them in a database for easier access.
-
-#### Usage in console
-
-```bash
-py metaextractor -h
-```
-
-#### Example in console
-
-```bash
-py metaextractor ../data/out/DOP25_LV95_1112-44_2013_1_13.json ../data/out/metadata.db
-```
-
-#### Example in Python
-
-```python
-import metaextractor
-metaextractor.extractor(
-    tile_data_path='../data/out/DOP25_LV95_1112-44_2013_1_13.json',
-    data_source_path='../data/out/metadata.db'
-)
-```
-
-## Model
-
-You can find [here](model.md) some details about the model.

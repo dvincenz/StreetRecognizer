@@ -9,6 +9,7 @@ from micromodel import micromodel
 def _parse_args():
     parser = argparse.ArgumentParser(description='Makes predictions based on previously generated prediction data using the micromodel.')
     parser.add_argument('model', type=str, help='name of the saved micromodel to use')
+    parser.add_argument('--num-classes', type=int, default=2, help='the number of classes to predict into')
     parser.add_argument('-i', '--input', type=str, default='../data/in/micro-predict', help='directory path to read the prediction images from')
     parser.add_argument('-o', '--output', type=str, default='../data/out/micro-predict.json', help='geojson file to write')
     parser.add_argument('--confidence', type=float, default=0.7, help='minimum confidence required to include a prediction in the result (default: 0.7)')
@@ -21,7 +22,7 @@ def run():
     prediction_file = os.path.join('../data/out', '{0}.json'.format(args['model']))
     micromodel(
         name=args['model'],
-        num_classes=2,
+        num_classes=args['num_classes'],
         predict=args['input'],
         out=prediction_file
     )
