@@ -103,5 +103,27 @@ py slicer -h
 #### Example
 
 ```bash
-py slicer ../data/in/ortho/wgs84/DOP25_LV95_1091-14_2013_1_13.tif ../data/out
+py slicer /swissimage/wgs84/DOP25_LV95_1091-14_2013_1_13.tif ../data/out
+```
+
+### ImageProcessor
+
+The ImageProcessor was originally intended to take a geojson file with the osm street data of an ortho photo section. This geojson files contain the street data in a vector format. Then, the ImageProcessor would generate a rasterized image of this vector data with the same size as the corresponding ortho photo.
+
+In combination with the slicer mentioned above, the goal was to feed both the ortho photo slice, as well as the rasterized street slice to the model. This would hopefully assist the model in identifying where the streets are located on the given ortho slice.
+
+This approach was deprecated in favor of the micro model, which is pretty much guaranteed to only always have one street per image.
+
+#### Usage
+
+```bash
+py imageprocessor -h
+```
+
+The geojson with the streets of this ortho photo section can be obtained from the `osmdataprovider`.
+
+#### Example
+
+```bash
+py imageprocessor ../data/DOP25_LV95_1112-44_2013_1_13_line.json ../data/DOP25_LV95_1112-44_2013_1_13-streets.tif --template /swissimage/wgs84/DOP25_LV95_1112-44_2013_1_13.tif --method rasterizeGeojson
 ```
