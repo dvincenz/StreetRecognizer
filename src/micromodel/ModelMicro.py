@@ -31,17 +31,17 @@ class ModelMicro(ABC):
             images.append(os.path.abspath(input_path))
 
         x_predict = numpy.array(data).reshape(len(data), 32, 32, 3)
-
         self._predict(
             x_predict=x_predict,
             image_names=images,
             output_file=output_file
         )
 
+        
     def _predict(self, x_predict: numpy.array, image_names: [str], output_file: str):
         model = keras.models.load_model(self._model_path)
         y_predict = model.predict_proba(x_predict)
-
+        print (self._get_probability_for_paved(y_predict))
         paved = 0
         unpaved = 0
         predictions = []
@@ -72,7 +72,35 @@ class ModelMicro(ABC):
             json.dump(data, file, indent=4)
 
         print('Predictions saved to {0}'.format(output_file))
-        print(json.dumps(data['summary'], indent=4))
+        # print(json.dumps(data['summary'], indent=4))
+    
+    def _get_summed_predictions(self, predictions):
+        result = []
+        for prediction in predictions:
+            i = 0
+            for predicted_surface in prediction:
+                if len(result) <= i:
+                    result.append(0)
+                result[i] += predicted_surface
+                i += 1
+        return result
+    
+    def _get_probability_for_paved(self, predictions):
+        summed_predictions = self._get_summed_predictions(predictions)
+        named_predictions = self._format_prediction("summary", summed_predictions)
+        print(named_predictions)
+        if len(predictions[0]) == 2:
+            paved = named_predictions["values"]["paved"],
+            unpaved = named_predictions["values"]["unpaved"]
+        if len(predictions[0]) == 10:
+            p = named_predictions["values"]
+            paved = p["paved"] + p["asphalt"] + p["concrete"]
+            unpaved = p["grass"] + p["gravel"] + p["fine_gravel"] + p["compacted"] + p["dirt"] + p["ground"] + p["unpaved"]
+        if len(predictions[0]) == 8:
+            p = named_predictions["values"]
+            paved = p["asphalt"] + p["concrete"]
+            unpaved = p["grass"] + p["gravel"] + p["fine_gravel"] + p["compacted"] + p["dirt"] + p["ground"]
+        return (paved / len(predictions), unpaved / len(predictions))
 
     def _format_prediction(self, image_name: str, prediction):
         data = OrderedDict([

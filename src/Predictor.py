@@ -12,6 +12,7 @@ from geoutils.RandomImageProvider import RandomImageProvider
 def _parse_args():
     parser = argparse.ArgumentParser(description='Makes predictions based on previously generated prediction data using the micromodel.')
     parser.add_argument('model', type=str, help='name of the saved micromodel to use')
+    parser.add_argument('--num-classes', type=int, default=2, help='the number of classes to predict into')
     parser.add_argument('-i', '--input', type=str, default='../data/in/micro-predict', help='directory path to read the prediction images from')
     parser.add_argument('-o', '--output', type=str, default='../data/out/micro-predict.json', help='geojson file to write')
     parser.add_argument('--confidence', type=float, default=0.7, help='minimum confidence required to include a prediction in the result (default: 0.7)')
@@ -30,7 +31,7 @@ def run():
     prediction_file = os.path.join('../data/out', '{0}.json'.format(args['model']))
     micromodel(
         name=args['model'],
-        num_classes=8,
+        num_classes=args['num_classes'],
         predict=input_path,
         out=prediction_file
     )
@@ -39,7 +40,6 @@ def run():
         prediction_result = json.load(file)
 
     all_predictions_by_street = _get_all_predictions_by_street(prediction_result)
-    print(all_predictions_by_street)
     final_prediction_by_street = _get_final_prediction_by_street(all_predictions_by_street, args['confidence'])
 
     with open(args['osm'], mode='r', encoding='UTF-8') as file:

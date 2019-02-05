@@ -11,7 +11,7 @@ from shapely.geometry import LineString, mapping
 
 from descartes import PolygonPatch
 from geodataprovider.GeoDataProvider import GeoDataProvider
-
+from geoutils.Types import GeoRect
 from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
 
 class OsmDataProvider:
@@ -64,7 +64,7 @@ class OsmDataProvider:
         with open(osm_geojson_file, 'w') as file:
                 call(["osmtogeojson", osm_xml_file], stdout=file)
 
-    def export_unlabeled_ways_from_pbf(self, output_file: str = ""):
+    def export_unlabeled_ways_in_area_from_pbf(self, bbox: GeoRect, output_file: str = ""):
         if output_file == "":
             output_file = self.config.default_output_file_name
 
@@ -74,6 +74,7 @@ class OsmDataProvider:
         call([
             "osmosis",
             "--read-pbf", self.config.pbf_path,
+            "--bounding-box", "top={0}".format(bbox.a.north), "left={0}".format(bbox.a.east), "bottom={0}".format(bbox.b.north), "right={0}".format(bbox.b.east),
             "--tf", "accept-ways", "highway=*",
             "--tf", "reject-ways", "surface=*",
             "--tf", "reject-relations",
