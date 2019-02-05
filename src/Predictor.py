@@ -5,6 +5,9 @@ import geojson
 import json
 
 from micromodel import micromodel
+from osmdataprovider.OsmDataProviderConfig import OsmDataProviderConfig
+from osmdataprovider.OsmDataProvider import OsmDataProvider
+from geoutils.RandomImageProvider import RandomImageProvider
 
 def _parse_args():
     parser = argparse.ArgumentParser(description='Makes predictions based on previously generated prediction data using the micromodel.')
@@ -13,16 +16,22 @@ def _parse_args():
     parser.add_argument('-o', '--output', type=str, default='../data/out/micro-predict.json', help='geojson file to write')
     parser.add_argument('--confidence', type=float, default=0.7, help='minimum confidence required to include a prediction in the result (default: 0.7)')
     parser.add_argument('--osm', type=str, default='../data/in/osm/unlabeled-ways-filtered.json', help='path to osm geojson file containing the street data for the predicted streets')
+    parser.add_argument('--osm-id', type=str, default=None, help='osm way id for single prdiction, input path will be ignored')
     return vars(parser.parse_args())
 
 def run():
     args = _parse_args()
 
+    input_path = args['input']
+    if args['osm_id']:
+        print('create images for specific way')
+        input_path = _create_images_for_way(args['input'], args['osm_id'])
+
     prediction_file = os.path.join('../data/out', '{0}.json'.format(args['model']))
     micromodel(
         name=args['model'],
-        num_classes=2,
-        predict=args['input'],
+        num_classes=8,
+        predict=input_path,
         out=prediction_file
     )
 
@@ -30,6 +39,7 @@ def run():
         prediction_result = json.load(file)
 
     all_predictions_by_street = _get_all_predictions_by_street(prediction_result)
+    print(all_predictions_by_street)
     final_prediction_by_street = _get_final_prediction_by_street(all_predictions_by_street, args['confidence'])
 
     with open(args['osm'], mode='r', encoding='UTF-8') as file:
@@ -43,7 +53,10 @@ def run():
     with open(args['output'], mode='w+', encoding='UTF-8') as file:
         geojson.dump(obj=osm_geojson, fp=file, indent=4)
 
-    print('Result written to {0}'.format(os.abspath(args['output'])))
+    print('Result written to {0}'.format(os.path.abspath(args['output'])))
+    if args['osm_id']:
+        print('print detailed prediction')       
+
 
 def _get_all_predictions_by_street(prediction_result) -> dict:
     result = {}
@@ -85,5 +98,12 @@ def _max_unique(dictionary) -> (object, object):
 
     return (max_item, max_value)
 
-if __name__ == "__main__":
+def _create_images_for_way (output: str, way_id: int) -> str:
+    data_provider = OsmDataProvider(None)
+    ways = data_provider.get_ways_by_id(way_id)
+    with RandomImageProvider(32, os.path.join(output, way_id), '../data/metadata.db', False) as rip:
+        rip.get_random_images(30, ways, True, True)
+    return os.path.join(output, way_id)
+
+if __name__ == "__main__":          
     run()

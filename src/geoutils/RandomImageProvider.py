@@ -22,6 +22,7 @@ class RandomImageProvider:
         self.is_seed_fix = is_seed_fix
         self.current_image = None
         self.current_geoimage = None
+        self.points = None
     def __enter__(self):
         return self
 
@@ -33,11 +34,11 @@ class RandomImageProvider:
     def get_random_images(self, number: int, line_strings, overwrite=False, show_progress=True):
         geo_lines = GeoLines(line_strings)
         image_number = self._get_image_number(overwrite)
-        points = geo_lines.random_points(number - image_number)
+        self.points = geo_lines.random_points(number - image_number)
         Image.MAX_IMAGE_PIXELS = 20000 * 20000
 
         points_by_image = {}
-        for point in points:
+        for point in self.points:
             points_by_image.setdefault(self._find_ortho_photo(point), []).append(point)
 
         if show_progress:
@@ -56,7 +57,7 @@ class RandomImageProvider:
             for key, value in points_by_image.items():
                 try:
                     for point in value:
-                        sample = self._get_sample_image(point=point, image_path=key)
+                        sample = self._get_sample_image(point=point, image_path=key)                       
                         self.writer.write(sample, os.path.join(self.out_path, '{0:04d}.png'.format(image_number)))
                         image_number += 1
                         bar.update(image_number)

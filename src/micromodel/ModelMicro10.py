@@ -220,3 +220,17 @@ class ModelMicro10(ModelMicro):
             'fine_gravel': 9
         }
         return mapping[surface]
+    
+    def _map_int_to_surface(self, number:int) -> str:
+        mapping = {
+            0: 'asphalt',
+            1: 'gravel' ,
+            2: 'paved',
+            3: 'ground',
+            4: 'unpaved',
+            5: 'grass',
+            6: 'dirt',
+            7: 'concrete',
+            8: 'compacted',
+            9: 'fine_gravel'
+        }

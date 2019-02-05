@@ -26,6 +26,11 @@ class OsmDataProvider:
         response = self.api.get('(way["highway"] ({0}, {1}, {2}, {3}); >; ); out geom;'.format(lower_left[1], lower_left[0], upper_right[1], upper_right[0]))
         return self._get_ways(response)
 
+    def get_ways_by_id(self, id: int):
+        response = self.api.get('(way({0}); >; ); out geom;'.format(id))
+        return self._get_ways(response)
+
+
     def export_ways_by_coordinates(self, lower_left: [], upper_right: [], output_file: str = ""):
         if output_file == "":
             output_file = self.config.default_output_file_name
