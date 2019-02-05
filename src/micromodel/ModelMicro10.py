@@ -52,6 +52,13 @@ class ModelMicro10(ModelMicro):
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
 
+        model.add(Conv2D(128, (3, 3), padding='same'))
+        model.add(Activation('relu'))
+        model.add(Conv2D(128, (3, 3)))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Dropout(0.25))
+
         model.add(Flatten())
         model.add(Dense(512))
         model.add(Activation('relu'))
@@ -220,3 +227,18 @@ class ModelMicro10(ModelMicro):
             'fine_gravel': 9
         }
         return mapping[surface]
+    
+    def _map_int_to_surface(self, number:int) -> str:
+        mapping = {
+            0: 'asphalt',
+            1: 'gravel' ,
+            2: 'paved',
+            3: 'ground',
+            4: 'unpaved',
+            5: 'grass',
+            6: 'dirt',
+            7: 'concrete',
+            8: 'compacted',
+            9: 'fine_gravel'
+        }
+        return mapping[number]

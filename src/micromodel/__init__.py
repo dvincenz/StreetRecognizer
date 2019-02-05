@@ -17,7 +17,7 @@ def _parse_args():
     parser.add_argument('-o', '--out', type=str, help='output json file to write predictions to')
     return vars(parser.parse_args())
 
-def _run():
+def run():
     args = _parse_args()
     micromodel(**args)
 
@@ -55,4 +55,4 @@ def micromodel(**kwargs):
         model.predict(input_path=kwargs.get('predict'), output_file=out_file)
 
 if __name__ == "__main__":
-    _run()
+    run()

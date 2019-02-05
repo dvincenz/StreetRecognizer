@@ -6,3 +6,4 @@ __pycache__
 *.shx
 *.vrt
 *.prj
+*.pyc

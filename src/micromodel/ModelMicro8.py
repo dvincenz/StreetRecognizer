@@ -31,7 +31,7 @@ class ModelMicro8(ModelMicro):
         'fine_gravel'
     ]
     BATCH_SIZE = 32
-    NUM_CLASSES = 10
+    NUM_CLASSES = 8
     EPOCHS = 100
     STEPS_PER_EPOCH = 100
     DATA_AUGMENTATION = True
@@ -236,3 +236,15 @@ class ModelMicro8(ModelMicro):
             'fine_gravel': 7
         }
         return mapping[surface]
+    def _map_int_to_surface(self, number:int) -> str:
+        mapping = {
+            0: 'asphalt',
+            1: 'gravel' ,
+            2: 'ground',
+            3: 'grass',
+            4: 'dirt',
+            5: 'concrete',
+            6: 'compacted',
+            7: 'fine_gravel'
+        }
+        return mapping[number]

@@ -33,8 +33,8 @@ class ModelMicro2(ModelMicro):
     ]
     NUM_CLASSES = 2
     BATCH_SIZE = 32
-    EPOCHS = 200
-    STEPS_PER_EPOCH = 300
+    EPOCHS = 12
+    STEPS_PER_EPOCH = 100
     DATA_AUGMENTATION = True
 
     def __init__(self, model_path: str):
