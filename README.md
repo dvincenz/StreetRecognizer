@@ -4,6 +4,8 @@ Proof of concept to recognize and attribute streets/roads or trails surfaces bas
 
 To get started with developing, see the [Developer Guide](./developer-guide.md).
 
+We have also written a [general summary](./summary.md) of the work process and our thoughts on this project.
+
 ## Full Process
 
 The full process encompasses acquiring ortho photos, preparing the input data, training the model, and using the model to make predictions. This process is split into multiple modules, of which some steps must be executed manually.
