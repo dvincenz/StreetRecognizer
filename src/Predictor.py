@@ -54,8 +54,6 @@ def run():
         geojson.dump(obj=osm_geojson, fp=file, indent=4)
 
     print('Result written to {0}'.format(os.path.abspath(args['output'])))
-    if args['osm_id']:
-        print('print detailed prediction')       
 
 
 def _get_all_predictions_by_street(prediction_result) -> dict:

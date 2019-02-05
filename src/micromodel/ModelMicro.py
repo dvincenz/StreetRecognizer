@@ -41,7 +41,6 @@ class ModelMicro(ABC):
     def _predict(self, x_predict: numpy.array, image_names: [str], output_file: str):
         model = keras.models.load_model(self._model_path)
         y_predict = model.predict_proba(x_predict)
-        print (self._get_probability_for_paved(y_predict))
         paved = 0
         unpaved = 0
         predictions = []
@@ -70,9 +69,10 @@ class ModelMicro(ABC):
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, mode='w', encoding='UTF-8') as file:
             json.dump(data, file, indent=4)
-
+            
+        print(json.dumps(data['summary'], indent=4))
         print('Predictions saved to {0}'.format(output_file))
-        # print(json.dumps(data['summary'], indent=4))
+        
     
     def _get_summed_predictions(self, predictions):
         result = []
