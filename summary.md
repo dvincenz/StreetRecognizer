@@ -2,7 +2,7 @@
 
 The goal of this project was to evaluate whether it was feasible to use machine learning (image recognition in particular) to automatically label the surface material of streets using ortho photos.
 
-*See also our [presentation slides](TODO).*
+*See also our [presentation slides](./docs/ChallP-StreetRecognizer-Presentation.pdf) (german).*
 
 ## Challenges
 
