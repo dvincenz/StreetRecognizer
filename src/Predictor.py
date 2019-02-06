@@ -29,12 +29,15 @@ def run():
         input_path = _create_images_for_way(args['input'], args['osm_id'])
 
     prediction_file = os.path.join('../data/out', '{0}.json'.format(args['model']))
-    micromodel(
-        name=args['model'],
-        num_classes=args['num_classes'],
-        predict=input_path,
-        out=prediction_file
-    )
+    if not os.path.exists(prediction_file):
+        micromodel(
+            name=args['model'],
+            num_classes=args['num_classes'],
+            predict=input_path,
+            out=prediction_file
+        )
+    else:
+        print('Prediction file already exists, not making new predictions...')
 
     with open(prediction_file, mode='r', encoding='UTF-8') as file:
         prediction_result = json.load(file)
